@@ -9,8 +9,8 @@ export interface PlacedFurniture {
 
 export type RoomLayout = PlacedFurniture[];
 
-export const GRID_WIDTH = 16;
+export const GRID_WIDTH = 12;
 export const GRID_HEIGHT = 12;
-export const TILE_SIZE = 32;
+export const TILE_SIZE = 48;
 
 export type Direction = "up" | "down" | "left" | "right";

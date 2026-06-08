@@ -1,8 +1,8 @@
-/** lo-fi ゲームルーム風テンプレート */
+/** GBA風クラシック・マイルームテンプレート */
 
 import {
-  drawIsoBlock,
   drawIsoFloorTile,
+  drawIsoVoxel,
   gridToScreen,
   ISO_BLOCK_H,
   ISO_TILE_H,
@@ -10,44 +10,43 @@ import {
   LOFT_BOUNDS,
   shade,
 } from "./isometric";
+import { drawTemplateGamingDesk } from "./furnitureSprites";
+import { px, snap, voxelFaces } from "./pixelDraw";
 
-/** ロフトへ続くフラットな段差ライン（歩行可能） */
 export const RAMP_CELLS = [
-  { x: 7, y: 5 },
-  { x: 7, y: 6 },
+  { x: 5, y: 4 },
+  { x: 5, y: 5 },
 ] as const;
 
 export const RUG_CELLS = [
-  { x: 9, y: 9 },
-  { x: 10, y: 9 },
+  { x: 6, y: 7 },
+  { x: 7, y: 7 },
 ] as const;
 
-export const COUCH_POS = { x: 3, y: 2 };
-export const DESK_LEFT = { x: 3, y: 10 };
-export const DESK_RIGHT = { x: 12, y: 10 };
+export const COUCH_POS = { x: 2, y: 2 };
+export const DESK_LEFT = { x: 2, y: 9 };
+export const DESK_RIGHT = { x: 9, y: 9 };
 
 export const ROOM_COLORS = {
-  loftFloor: "#2a2848",
-  loftEdge: "#1e1c38",
-  floorA: "#1a1a2e",
-  floorB: "#222240",
-  rampA: "#242442",
-  rampB: "#2c2c50",
-  rug: "#1a3048",
-  rugBorder: "#3a8ab8",
-  platform: "#0e0c18",
-  wall: "#1a2038",
-  wallHi: "#2a3458",
-  neonCyan: "#4af0ff",
-  neonMagenta: "#ff4ad8",
-  neonCyanDim: "#1a4a5a",
-  neonMagentaDim: "#4a1a48",
-  windowGlass: "#141c30",
-  cityLight: "#ffd080",
-  cityLight2: "#ff9060",
-  desk: "#2a2a3a",
-  monitor: "#1a1a2a",
-  couch: "#3a2858",
+  loftFloor: "#b89868",
+  loftEdge: "#786040",
+  floorA: "#c8a868",
+  floorB: "#a88048",
+  rampA: "#b09058",
+  rampB: "#987848",
+  rug: "#6888a8",
+  rugBorder: "#a0c0d8",
+  platform: "#584028",
+  wall: "#a89888",
+  wallHi: "#c8c0b0",
+  neonCyan: "#40d8f0",
+  neonMagenta: "#e858c8",
+  windowGlass: "#88c8e8",
+  cityLight: "#f0c878",
+  cityLight2: "#e8a050",
+  desk: "#8b6914",
+  monitor: "#3a4555",
+  couch: "#6a4888",
 };
 
 export function isRugCell(gridX: number, gridY: number): boolean {
@@ -58,82 +57,45 @@ export function isRampCell(gridX: number, gridY: number): boolean {
   return RAMP_CELLS.some((c) => c.x === gridX && c.y === gridY);
 }
 
-/** @deprecated isRampCell を使用 */
 export function isStairCell(gridX: number, gridY: number): boolean {
   return isRampCell(gridX, gridY);
 }
 
-/** lo-fi 夜の室内背景 */
+/** GBA風の昼空背景 */
 export function drawLoFiBackground(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
 ) {
-  const bg = ctx.createLinearGradient(0, 0, 0, height);
-  bg.addColorStop(0, "#080a14");
-  bg.addColorStop(0.35, "#10122a");
-  bg.addColorStop(0.7, "#141630");
-  bg.addColorStop(1, "#080610");
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, width, height);
-
-  // 微細な星・ノイズ
-  ctx.fillStyle = "rgba(255,255,255,0.04)";
-  for (let i = 0; i < 40; i++) {
-    const x = ((i * 137) % 1000) / 1000 * width;
-    const y = ((i * 89) % 1000) / 1000 * height * 0.55;
-    ctx.fillRect(x, y, 1, 1);
+  const bands = ["#78b8e8", "#88c4ee", "#98ccf0", "#a8d4f2"];
+  const bandH = Math.ceil(height / bands.length);
+  for (let i = 0; i < bands.length; i++) {
+    px(ctx, 0, i * bandH, width, bandH, bands[i]);
   }
-
-  const cyanGlow = ctx.createRadialGradient(
-    width * 0.2,
-    height * 0.75,
-    0,
-    width * 0.2,
-    height * 0.75,
-    width * 0.45,
-  );
-  cyanGlow.addColorStop(0, "rgba(74, 240, 255, 0.07)");
-  cyanGlow.addColorStop(1, "rgba(74, 240, 255, 0)");
-  ctx.fillStyle = cyanGlow;
-  ctx.fillRect(0, height * 0.5, width * 0.55, height * 0.5);
-
-  const magGlow = ctx.createRadialGradient(
-    width * 0.8,
-    height * 0.75,
-    0,
-    width * 0.8,
-    height * 0.75,
-    width * 0.45,
-  );
-  magGlow.addColorStop(0, "rgba(255, 74, 216, 0.07)");
-  magGlow.addColorStop(1, "rgba(255, 74, 216, 0)");
-  ctx.fillStyle = magGlow;
-  ctx.fillRect(width * 0.45, height * 0.5, width * 0.55, height * 0.5);
+  for (let i = 0; i < 5; i++) {
+    const cx = 40 + i * 72;
+    px(ctx, cx, 16, 24, 8, "#ffffff");
+    px(ctx, cx + 4, 14, 16, 6, "#f0f8ff");
+  }
 }
 
-/** 画面端のビネット */
+export const drawHousingBackground = drawLoFiBackground;
+
 export function drawAmbientVignette(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
 ) {
-  const vg = ctx.createRadialGradient(
-    width / 2,
-    height * 0.55,
-    width * 0.25,
-    width / 2,
-    height * 0.55,
-    width * 0.72,
-  );
-  vg.addColorStop(0, "rgba(0,0,0,0)");
-  vg.addColorStop(0.65, "rgba(0,0,0,0.12)");
-  vg.addColorStop(1, "rgba(0,0,0,0.45)");
-  ctx.fillStyle = vg;
-  ctx.fillRect(0, 0, width, height);
+  const bands = [
+    { y: 0, h: 4, a: 0.08 },
+    { y: height - 8, h: 8, a: 0.12 },
+  ];
+  for (const b of bands) {
+    px(ctx, 0, b.y, width, b.h, `rgba(40, 30, 20, ${b.a})`);
+  }
 }
 
-/** 部屋外周（暗いドット） */
+/** 部屋外周（土台タイル） */
 export function drawOutdoorPad(
   ctx: CanvasRenderingContext2D,
   gridW: number,
@@ -143,53 +105,27 @@ export function drawOutdoorPad(
     for (let x = -1; x <= gridW; x++) {
       if (x >= 1 && x < gridW - 1 && y >= 1 && y < gridH) continue;
       const { x: sx, y: sy } = gridToScreen(x, y, gridW, gridH, -0.5);
-      const c = (x + y) % 2 === 0 ? "#12101e" : "#16142a";
-      drawIsoFloorTile(ctx, sx, sy, c, false, false);
+      const c = (x + y) % 2 === 0 ? "#483828" : "#584838";
+      drawIsoFloorTile(ctx, sx, sy, c, false, false, x + y);
     }
   }
 }
 
-/** 壁面に微細な縦ストライプ */
+export const drawOutdoorCheckerPad = drawOutdoorPad;
+
 export function drawWallSurfaceDetail(
   ctx: CanvasRenderingContext2D,
   gridW: number,
   gridH: number,
   wallLayers: number,
 ) {
-  const hh = ISO_TILE_H / 2;
-  const h = ISO_BLOCK_H * wallLayers;
-  const backL = gridToScreen(1, 0, gridW, gridH, 0);
-  const backR = gridToScreen(gridW - 2, 0, gridW, gridH, 0);
-  const baseY = backL.y + hh;
-  const topY = baseY - h + 6;
-
-  ctx.save();
-  ctx.strokeStyle = "rgba(255,255,255,0.03)";
-  ctx.lineWidth = 0.6;
-  for (let i = 0; i < 14; i++) {
-    const t = i / 13;
-    const x = backL.x + (backR.x - backL.x) * t;
-    ctx.beginPath();
-    ctx.moveTo(x, topY);
-    ctx.lineTo(x + 8, baseY - 4);
-    ctx.stroke();
-  }
-
-  const leftB = gridToScreen(0, 1, gridW, gridH, 0);
-  const leftF = gridToScreen(0, gridH - 1, gridW, gridH, 0);
-  for (let i = 0; i < 10; i++) {
-    const t = i / 9;
-    const x = leftB.x - ISO_TILE_W * 0.35 + t * 4;
-    const y0 = leftB.y + hh - h + 6 + t * (leftF.y - leftB.y);
-    ctx.beginPath();
-    ctx.moveTo(x, y0);
-    ctx.lineTo(x - 6, y0 + h * 0.85);
-    ctx.stroke();
-  }
-  ctx.restore();
+  void ctx;
+  void gridW;
+  void gridH;
+  void wallLayers;
 }
 
-/** ロフト手前の段差面（1枚の面・床タイル上に重ねない） */
+/** ロフト手前段差 */
 export function drawLoftFrontFace(
   ctx: CanvasRenderingContext2D,
   gridW: number,
@@ -206,32 +142,32 @@ export function drawLoftFrontFace(
   const baseR = right.y + hh;
 
   ctx.beginPath();
-  ctx.moveTo(left.x - hw, baseL);
-  ctx.lineTo(left.x - hw, baseL + h);
-  ctx.lineTo(right.x + hw, baseR + h);
-  ctx.lineTo(right.x + hw, baseR);
+  ctx.moveTo(snap(left.x - hw), snap(baseL));
+  ctx.lineTo(snap(left.x - hw), snap(baseL + h));
+  ctx.lineTo(snap(right.x + hw), snap(baseR + h));
+  ctx.lineTo(snap(right.x + hw), snap(baseR));
   ctx.closePath();
-  const frontGrad = ctx.createLinearGradient(left.x, baseL, right.x, baseR + h);
-  frontGrad.addColorStop(0, shade(loftEdge, 8));
-  frontGrad.addColorStop(1, shade(loftEdge, -16));
-  ctx.fillStyle = frontGrad;
+  ctx.fillStyle = loftEdge;
   ctx.fill();
+  ctx.strokeStyle = shade(loftEdge, -24);
+  ctx.lineWidth = 2;
+  ctx.stroke();
 
   const east = gridToScreen(LOFT_BOUNDS.maxX, LOFT_BOUNDS.minY, gridW, gridH, 1);
   const eastBot = gridToScreen(LOFT_BOUNDS.maxX, LOFT_BOUNDS.maxY, gridW, gridH, 1);
   const eTop = east.y + hh;
   const eBot = eastBot.y + hh;
   ctx.beginPath();
-  ctx.moveTo(east.x + hw, eTop);
-  ctx.lineTo(east.x + hw, eTop + h);
-  ctx.lineTo(eastBot.x + hw, eBot + h);
-  ctx.lineTo(eastBot.x + hw, eBot);
+  ctx.moveTo(snap(east.x + hw), snap(eTop));
+  ctx.lineTo(snap(east.x + hw), snap(eTop + h));
+  ctx.lineTo(snap(eastBot.x + hw), snap(eBot + h));
+  ctx.lineTo(snap(eastBot.x + hw), snap(eBot));
   ctx.closePath();
-  ctx.fillStyle = shade(loftEdge, -14);
+  ctx.fillStyle = shade(loftEdge, -16);
   ctx.fill();
 }
 
-/** 背面の雨窓＋街の明かり */
+/** 背面の窓（GBA風） */
 export function drawRainyCityWindow(
   ctx: CanvasRenderingContext2D,
   gridW: number,
@@ -243,117 +179,47 @@ export function drawRainyCityWindow(
   const left = gridToScreen(2, 0, gridW, gridH, 0);
   const right = gridToScreen(gridW - 3, 0, gridW, gridH, 0);
   const baseY = left.y + hh;
-  const winTop = baseY - h + 6;
-  const winH = h - 12;
-  const winLeft = left.x - ISO_TILE_W * 0.3;
-  const winW = right.x - left.x + ISO_TILE_W * 0.6;
+  const winTop = snap(baseY - h + 10);
+  const winH = h - 20;
+  const winLeft = snap(left.x - ISO_TILE_W * 0.25);
+  const winW = snap(right.x - left.x + ISO_TILE_W * 0.5);
 
-  // 窓枠（外側）
-  ctx.fillStyle = "#0e1428";
-  ctx.fillRect(winLeft - 4, winTop - 4, winW + 8, winH + 8);
-
-  const glassGrad = ctx.createLinearGradient(winLeft, winTop, winLeft + winW, winTop + winH);
-  glassGrad.addColorStop(0, "#0c1428");
-  glassGrad.addColorStop(0.4, ROOM_COLORS.windowGlass);
-  glassGrad.addColorStop(0.7, "#1a2848");
-  glassGrad.addColorStop(1, "#0a1020");
-  ctx.fillStyle = glassGrad;
-  ctx.fillRect(winLeft, winTop, winW, winH);
+  px(ctx, winLeft - 6, winTop - 6, winW + 12, winH + 12, "#686058");
+  px(ctx, winLeft, winTop, winW, winH, ROOM_COLORS.windowGlass);
+  px(ctx, winLeft + 2, winTop + 2, winW - 4, winH - 4, "#a8d8f0");
 
   const { cityLight, cityLight2 } = ROOM_COLORS;
-  for (let i = 0; i < 16; i++) {
-    const bx = winLeft + 10 + (i % 4) * (winW / 4.2);
-    const by = winTop + winH - 20 - Math.floor(i / 4) * 26;
-    const bw = 5 + (i % 2);
-    const bh = 7 + (i % 3);
-    ctx.fillStyle = i % 3 === 0 ? cityLight2 : cityLight;
-    ctx.fillRect(bx, by, bw, bh);
-    ctx.fillStyle = `rgba(255, 200, 120, ${0.08 + (i % 4) * 0.03})`;
-    ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 6);
+  for (let i = 0; i < 10; i++) {
+    const bx = winLeft + 12 + (i % 5) * (winW / 5.5);
+    const by = winTop + winH - 28 - Math.floor(i / 5) * 22;
+    px(ctx, bx, by, 6, 8, i % 2 === 0 ? cityLight2 : cityLight);
   }
 
-  // ボケ玉
-  for (let i = 0; i < 6; i++) {
-    const bx = winLeft + 20 + i * (winW / 6.5);
-    const by = winTop + 18 + (i % 3) * 14;
-    const r = 3 + (i % 2) * 2;
-    const bokeh = ctx.createRadialGradient(bx, by, 0, bx, by, r * 2);
-    bokeh.addColorStop(0, `rgba(180, 220, 255, ${0.12 + i * 0.02})`);
-    bokeh.addColorStop(1, "rgba(180, 220, 255, 0)");
-    ctx.fillStyle = bokeh;
-    ctx.beginPath();
-    ctx.arc(bx, by, r * 2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.strokeStyle = "#2a3a58";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#f0ece0";
+  ctx.lineWidth = 3;
   ctx.strokeRect(winLeft, winTop, winW, winH);
-
-  // 窓枠の仕切り
-  ctx.strokeStyle = "#1e2a48";
-  ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.moveTo(winLeft + winW / 2, winTop);
-  ctx.lineTo(winLeft + winW / 2, winTop + winH);
-  ctx.moveTo(winLeft, winTop + winH / 2);
-  ctx.lineTo(winLeft + winW, winTop + winH / 2);
+  ctx.moveTo(snap(winLeft + winW / 2), winTop);
+  ctx.lineTo(snap(winLeft + winW / 2), winTop + winH);
+  ctx.moveTo(winLeft, snap(winTop + winH / 2));
+  ctx.lineTo(winLeft + winW, snap(winTop + winH / 2));
   ctx.stroke();
 
-  // 雨粒
-  ctx.strokeStyle = "rgba(180, 210, 255, 0.22)";
-  ctx.lineWidth = 0.7;
-  for (let i = 0; i < 24; i++) {
-    const rx = winLeft + 4 + i * (winW / 24);
-    ctx.beginPath();
-    ctx.moveTo(rx, winTop);
-    ctx.lineTo(rx + 3, winTop + winH);
-    ctx.stroke();
-  }
-
-  // ガラス反射
-  ctx.fillStyle = "rgba(200, 230, 255, 0.06)";
-  ctx.beginPath();
-  ctx.moveTo(winLeft + 4, winTop + 4);
-  ctx.lineTo(winLeft + winW * 0.35, winTop + 4);
-  ctx.lineTo(winLeft + winW * 0.15, winTop + winH * 0.45);
-  ctx.lineTo(winLeft + 4, winTop + winH * 0.25);
-  ctx.closePath();
-  ctx.fill();
+  px(ctx, winLeft + 4, winTop + 4, winW * 0.3, winH * 0.2, "rgba(255,255,255,0.15)");
 }
 
-/** 壁のネオン環境光 */
 export function drawWallNeonGlow(
   ctx: CanvasRenderingContext2D,
   gridW: number,
   gridH: number,
   wallLayers: number,
 ) {
-  const hh = ISO_TILE_H / 2;
-  const h = ISO_BLOCK_H * wallLayers;
-  const left = gridToScreen(0, gridH - 2, gridW, gridH, 0);
-  const baseY = left.y + hh;
-  const glowY = baseY - h * 0.4;
-
-  const cyanGrad = ctx.createLinearGradient(left.x - 60, glowY, left.x + 100, glowY);
-  cyanGrad.addColorStop(0, "rgba(74, 240, 255, 0)");
-  cyanGrad.addColorStop(0.35, "rgba(74, 240, 255, 0.18)");
-  cyanGrad.addColorStop(0.65, "rgba(74, 240, 255, 0.18)");
-  cyanGrad.addColorStop(1, "rgba(74, 240, 255, 0)");
-  ctx.fillStyle = cyanGrad;
-  ctx.fillRect(left.x - 70, glowY - 30, 160, 60);
-
-  const right = gridToScreen(gridW - 2, gridH - 2, gridW, gridH, 0);
-  const magGrad = ctx.createLinearGradient(right.x - 100, glowY, right.x + 60, glowY);
-  magGrad.addColorStop(0, "rgba(255, 74, 216, 0)");
-  magGrad.addColorStop(0.35, "rgba(255, 74, 216, 0.18)");
-  magGrad.addColorStop(0.65, "rgba(255, 74, 216, 0.18)");
-  magGrad.addColorStop(1, "rgba(255, 74, 216, 0)");
-  ctx.fillStyle = magGrad;
-  ctx.fillRect(right.x - 90, glowY - 30, 160, 60);
+  void ctx;
+  void gridW;
+  void gridH;
+  void wallLayers;
 }
 
-/** 床のネオン反射 */
 export function drawFloorNeonReflections(
   ctx: CanvasRenderingContext2D,
   gridW: number,
@@ -364,82 +230,8 @@ export function drawFloorNeonReflections(
   const footL = ly + ISO_TILE_H;
   const footR = ry + ISO_TILE_H;
 
-  const cyanRef = ctx.createRadialGradient(lx, footL + 2, 0, lx, footL + 2, 38);
-  cyanRef.addColorStop(0, "rgba(74, 240, 255, 0.16)");
-  cyanRef.addColorStop(0.5, "rgba(74, 240, 255, 0.06)");
-  cyanRef.addColorStop(1, "rgba(74, 240, 255, 0)");
-  ctx.fillStyle = cyanRef;
-  ctx.beginPath();
-  ctx.ellipse(lx, footL + 2, 36, 10, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  const magRef = ctx.createRadialGradient(rx, footR + 2, 0, rx, footR + 2, 38);
-  magRef.addColorStop(0, "rgba(255, 74, 216, 0.16)");
-  magRef.addColorStop(0.5, "rgba(255, 74, 216, 0.06)");
-  magRef.addColorStop(1, "rgba(255, 74, 216, 0)");
-  ctx.fillStyle = magRef;
-  ctx.beginPath();
-  ctx.ellipse(rx, footR + 2, 36, 10, 0, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-/** ゲーミングデスク */
-function drawGamingDesk(
-  ctx: CanvasRenderingContext2D,
-  sx: number,
-  sy: number,
-  neonColor: string,
-  screenColor: string,
-) {
-  const footY = sy + ISO_TILE_H;
-  drawIsoBlock(ctx, sx, sy, ROOM_COLORS.desk, 1);
-
-  const monW = 26;
-  const monH = 18;
-  const monY = footY - ISO_BLOCK_H - monH - 2;
-  ctx.fillStyle = ROOM_COLORS.monitor;
-  ctx.fillRect(sx - monW / 2, monY, monW, monH);
-  ctx.fillStyle = "#0a0a14";
-  ctx.fillRect(sx - monW / 2 + 2, monY + 2, monW - 4, monH - 4);
-
-  const screenGrad = ctx.createLinearGradient(sx - 10, monY + 3, sx + 10, monY + monH - 3);
-  screenGrad.addColorStop(0, shade(screenColor, 20));
-  screenGrad.addColorStop(0.5, screenColor);
-  screenGrad.addColorStop(1, shade(screenColor, -25));
-  ctx.fillStyle = screenGrad;
-  ctx.fillRect(sx - 10, monY + 3, 20, monH - 6);
-
-  // 画面グロー
-  ctx.shadowColor = neonColor;
-  ctx.shadowBlur = 10;
-  ctx.fillStyle = neonColor;
-  ctx.globalAlpha = 0.35;
-  ctx.fillRect(sx - 8, monY + 5, 16, monH - 10);
-  ctx.globalAlpha = 1;
-  ctx.shadowBlur = 0;
-
-  // キーボード
-  ctx.fillStyle = "#1e1e2e";
-  ctx.fillRect(sx - 12, footY - ISO_BLOCK_H - 4, 24, 4);
-  ctx.fillStyle = neonColor;
-  ctx.globalAlpha = 0.5;
-  for (let k = 0; k < 6; k++) {
-    ctx.fillRect(sx - 10 + k * 4, footY - ISO_BLOCK_H - 3, 2, 2);
-  }
-  ctx.globalAlpha = 1;
-
-  // LEDストリップ
-  ctx.fillStyle = neonColor;
-  ctx.shadowColor = neonColor;
-  ctx.shadowBlur = 12;
-  ctx.fillRect(sx - 14, footY - 2, 28, 3);
-  ctx.shadowBlur = 0;
-
-  // 足元の二次反射
-  ctx.fillStyle = neonColor;
-  ctx.globalAlpha = 0.12;
-  ctx.fillRect(sx - 16, footY, 32, 4);
-  ctx.globalAlpha = 1;
+  px(ctx, lx - 20, footL, 40, 4, "rgba(64, 216, 240, 0.2)");
+  px(ctx, rx - 20, footR, 40, 4, "rgba(232, 88, 200, 0.2)");
 }
 
 export function drawGamingDesks(
@@ -449,11 +241,12 @@ export function drawGamingDesks(
 ) {
   const left = gridToScreen(DESK_LEFT.x, DESK_LEFT.y, gridW, gridH, 0);
   const right = gridToScreen(DESK_RIGHT.x, DESK_RIGHT.y, gridW, gridH, 0);
-  drawGamingDesk(ctx, left.x, left.y, ROOM_COLORS.neonCyan, "#2a6a5a");
-  drawGamingDesk(ctx, right.x, right.y, ROOM_COLORS.neonMagenta, "#5a2a6a");
+  drawTemplateGamingDesk(ctx, left.x, left.y, ROOM_COLORS.neonCyan, "#2a6a5a");
+  drawTemplateGamingDesk(ctx, right.x, right.y, ROOM_COLORS.neonMagenta, "#5a2a5a");
 }
 
-/** ロフトのソファ */
+const COUCH = voxelFaces(ROOM_COLORS.couch);
+
 export function drawLoftCouch(
   ctx: CanvasRenderingContext2D,
   gridW: number,
@@ -461,59 +254,35 @@ export function drawLoftCouch(
 ) {
   const { x, y } = COUCH_POS;
   const { x: sx, y: sy } = gridToScreen(x, y, gridW, gridH, 1);
-  drawIsoBlock(ctx, sx, sy, ROOM_COLORS.couch, 1);
-  const footY = sy + ISO_TILE_H;
+  const fy = sy + ISO_TILE_H;
 
-  // 背もたれ
-  ctx.fillStyle = shade(ROOM_COLORS.couch, -18);
-  ctx.fillRect(sx - 12, footY - ISO_BLOCK_H - 10, 24, 8);
-  ctx.fillStyle = shade(ROOM_COLORS.couch, 12);
-  ctx.fillRect(sx - 10, footY - ISO_BLOCK_H - 9, 20, 3);
-
-  // 座面クッション
-  ctx.fillStyle = shade(ROOM_COLORS.couch, 22);
-  ctx.fillRect(sx - 10, footY - ISO_BLOCK_H - 3, 20, 5);
-  ctx.fillStyle = shade(ROOM_COLORS.couch, -8);
-  ctx.fillRect(sx - 8, footY - ISO_BLOCK_H - 1, 16, 2);
-
-  // 肘掛け
-  ctx.fillStyle = shade(ROOM_COLORS.couch, -25);
-  ctx.fillRect(sx - 12, footY - ISO_BLOCK_H - 5, 4, 6);
-  ctx.fillRect(sx + 8, footY - ISO_BLOCK_H - 5, 4, 6);
+  drawIsoVoxel(ctx, sx, sy, COUCH.top, COUCH.left, COUCH.right, 1);
+  px(ctx, sx - 14, fy - ISO_BLOCK_H - 12, 28, 10, COUCH.left);
+  px(ctx, sx - 12, fy - ISO_BLOCK_H - 11, 24, 4, COUCH.top);
+  px(ctx, sx - 12, fy - ISO_BLOCK_H - 4, 24, 6, shade(COUCH.top, 12));
+  px(ctx, sx - 14, fy - ISO_BLOCK_H - 6, 4, 8, COUCH.right);
+  px(ctx, sx + 10, fy - ISO_BLOCK_H - 6, 4, 8, COUCH.right);
 }
 
-/** ラグタイル */
-export function drawRugTile(
-  ctx: CanvasRenderingContext2D,
-  sx: number,
-  sy: number,
-) {
-  drawIsoFloorTile(ctx, sx, sy, ROOM_COLORS.rug, false, false);
+export function drawRugTile(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
+  drawIsoFloorTile(ctx, sx, sy, ROOM_COLORS.rug, false, false, 0);
   const hw = ISO_TILE_W / 2;
   const hh = ISO_TILE_H / 2;
 
   ctx.strokeStyle = ROOM_COLORS.rugBorder;
-  ctx.lineWidth = 1.2;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(sx - hw * 0.75, sy + hh * 0.45);
-  ctx.lineTo(sx + hw * 0.75, sy + hh * 1.55);
+  ctx.moveTo(snap(sx - hw * 0.7), snap(sy + hh * 0.45));
+  ctx.lineTo(snap(sx + hw * 0.7), snap(sy + hh * 1.55));
   ctx.stroke();
   ctx.beginPath();
-  ctx.moveTo(sx - hw * 0.55, sy + hh * 0.65);
-  ctx.lineTo(sx + hw * 0.55, sy + hh * 1.35);
+  ctx.moveTo(snap(sx - hw * 0.5), snap(sy + hh * 0.65));
+  ctx.lineTo(snap(sx + hw * 0.5), snap(sy + hh * 1.35));
   ctx.stroke();
 
-  ctx.fillStyle = "rgba(74, 240, 255, 0.06)";
-  ctx.beginPath();
-  ctx.moveTo(sx - hw * 0.3, sy + hh);
-  ctx.lineTo(sx, sy + hh * 0.7);
-  ctx.lineTo(sx + hw * 0.3, sy + hh);
-  ctx.lineTo(sx, sy + hh * 1.3);
-  ctx.closePath();
-  ctx.fill();
+  px(ctx, sx - 4, sy + hh, 8, 4, "rgba(255,255,255,0.12)");
 }
 
-/** 段差ランプタイル */
 export function drawRampTile(
   ctx: CanvasRenderingContext2D,
   sx: number,
@@ -521,11 +290,5 @@ export function drawRampTile(
   idx: number,
 ) {
   const c = idx % 2 === 0 ? ROOM_COLORS.rampA : ROOM_COLORS.rampB;
-  drawIsoFloorTile(ctx, sx, sy, shade(c, idx * 4), false, true);
+  drawIsoFloorTile(ctx, sx, sy, shade(c, idx * 3), false, true, idx);
 }
-
-/** @deprecated drawLoFiBackground を使用 */
-export const drawHousingBackground = drawLoFiBackground;
-
-/** @deprecated drawOutdoorPad を使用 */
-export const drawOutdoorCheckerPad = drawOutdoorPad;

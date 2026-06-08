@@ -14,7 +14,6 @@ import {
   depthKey,
   drawContinuousBackWall,
   drawContinuousLeftWall,
-  drawIsoBlock,
   drawIsoFloorTile,
   drawNameTag,
   CHARACTER_DISPLAY_HEIGHT,
@@ -31,6 +30,7 @@ import {
   ISO_BLOCK_H,
   ISO_WALL_LAYERS,
 } from "@/lib/isometric";
+import { drawFurnitureSprite } from "@/lib/furnitureSprites";
 import {
   COUCH_POS,
   DESK_LEFT,
@@ -45,8 +45,6 @@ import {
   drawRainyCityWindow,
   drawRampTile,
   drawRugTile,
-  drawWallNeonGlow,
-  drawWallSurfaceDetail,
   isRampCell,
   isRugCell,
   ROOM_COLORS,
@@ -81,21 +79,21 @@ interface RoomCanvasProps {
   onPlayerMove?: (x: number, y: number, dir: Direction) => void;
 }
 
-const FURNITURE: Record<string, { color: string; layers: number }> = {
-  furniture_pc_01: { color: "#4a5568", layers: 2 },
-  furniture_desk_01: { color: "#8b6914", layers: 1 },
-  furniture_chair_01: { color: "#c0392b", layers: 1 },
-  furniture_plant_01: { color: "#27ae60", layers: 2 },
+const FURNITURE_LAYERS: Record<string, number> = {
+  furniture_pc_01: 2,
+  furniture_desk_01: 1,
+  furniture_chair_01: 1,
+  furniture_plant_01: 2,
 };
 
 const WALLPAPER: Record<string, string> = {
   wall_default: ROOM_COLORS.wall,
-  wall_blue: "#1a2848",
-  wall_pink: "#2a1a38",
+  wall_blue: "#8898a8",
+  wall_pink: "#a88898",
 };
 
-/** ラグ上が初期スポーン */
-const DEFAULT_SPAWN = { gridX: 9, gridY: 9 };
+/** ラグ中央が初期スポーン */
+const DEFAULT_SPAWN = { gridX: 6, gridY: 7 };
 
 function getOccupiedCells(layout: RoomLayout): Set<string> {
   const cells = new Set<string>();
@@ -154,7 +152,7 @@ export function RoomCanvas({
     const update = () => {
       const w = el.clientWidth;
       if (w <= 0) return;
-      dprRef.current = Math.min(window.devicePixelRatio || 1, 2);
+      dprRef.current = Math.min(Math.max(1, Math.floor(window.devicePixelRatio || 1)), 2);
       const scale = w / baseSize.width;
       setDisplaySize({
         width: Math.round(w),
@@ -171,7 +169,7 @@ export function RoomCanvas({
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
     const { width: DW, height: DH } = displaySize;
@@ -212,13 +210,12 @@ export function RoomCanvas({
       if (isRugCell(x, y)) {
         drawRugTile(ctx, sx, sy);
       } else if (isLoftCell(x, y)) {
-        drawIsoFloorTile(ctx, sx, sy, ROOM_COLORS.loftFloor, isHighlight || isPlayer, false);
+        drawIsoFloorTile(ctx, sx, sy, ROOM_COLORS.loftFloor, isHighlight || isPlayer, true, x + y);
       } else if (isRampCell(x, y)) {
-        const rampIdx = x + y;
-        drawRampTile(ctx, sx, sy, rampIdx);
+        drawRampTile(ctx, sx, sy, x + y);
       } else {
         const checker = (x + y) % 2 === 0 ? ROOM_COLORS.floorA : ROOM_COLORS.floorB;
-        drawIsoFloorTile(ctx, sx, sy, checker, isHighlight || isPlayer, true);
+        drawIsoFloorTile(ctx, sx, sy, checker, isHighlight || isPlayer, true, x + y);
       }
     }
 
@@ -226,9 +223,7 @@ export function RoomCanvas({
 
     drawContinuousBackWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
     drawContinuousLeftWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
-    drawWallSurfaceDetail(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS);
     drawRainyCityWindow(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS);
-    drawWallNeonGlow(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS);
 
     drawLoftCouch(ctx, GRID_WIDTH, GRID_HEIGHT);
     drawGamingDesks(ctx, GRID_WIDTH, GRID_HEIGHT);
@@ -244,17 +239,10 @@ export function RoomCanvas({
     for (const placed of furniture) {
       const item = itemMap.get(placed.itemId);
       if (!item) continue;
-      const def = FURNITURE[item.spriteKey] ?? { color: "#666", layers: 1 };
+      const layers = FURNITURE_LAYERS[item.spriteKey] ?? 1;
       const z = floorElevation(placed.gridX, placed.gridY);
       const { x: sx, y: sy } = gridToScreen(placed.gridX, placed.gridY, GRID_WIDTH, GRID_HEIGHT, z);
-      drawIsoBlock(ctx, sx, sy, def.color, def.layers);
-
-      if (item.spriteKey === "furniture_pc_01") {
-        ctx.fillStyle = "#7ec8ff";
-        ctx.font = "bold 7px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("PC", sx, sy - def.layers * ISO_BLOCK_H - 2);
-      }
+      drawFurnitureSprite(ctx, item.spriteKey, sx, sy, layers);
     }
 
     const drawPlayer = (
@@ -290,7 +278,7 @@ export function RoomCanvas({
       const z = floorElevation(stamp.gridX, stamp.gridY);
       const { x: sx, y: sy } = gridToScreen(stamp.gridX, stamp.gridY, GRID_WIDTH, GRID_HEIGHT, z);
       ctx.fillStyle = "#ff6b9d";
-      ctx.font = "14px monospace";
+      ctx.font = "16px monospace";
       ctx.textAlign = "center";
       ctx.fillText("♥", sx, sy - ISO_BLOCK_H * 2);
     }
@@ -308,10 +296,10 @@ export function RoomCanvas({
     const pz = floorElevation(playerPos.gridX, playerPos.gridY);
     const { x: px, y: sy } = gridToScreen(playerPos.gridX, playerPos.gridY, GRID_WIDTH, GRID_HEIGHT, pz);
     const arrow = { up: "▲", down: "▼", left: "◀", right: "▶" }[direction];
-    ctx.fillStyle = "rgba(255,255,255,0.8)";
-    ctx.font = "9px monospace";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "11px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(arrow, px, tileFootY(sy) - CHARACTER_DISPLAY_HEIGHT - 12);
+    ctx.fillText(arrow, px, tileFootY(sy) - CHARACTER_DISPLAY_HEIGHT - 14);
 
     drawAmbientVignette(ctx, BW, BH);
 
@@ -447,12 +435,13 @@ export function RoomCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden rounded-xl border-2 border-[#2a3458]/70 shadow-xl shadow-black/60"
+      className="relative w-full overflow-hidden rounded-xl border-4 border-[#584028] shadow-lg"
+      style={{ imageRendering: "pixelated" }}
     >
       <canvas
         ref={canvasRef}
         className="w-full h-auto block cursor-pointer"
-        style={{ imageRendering: "auto" }}
+        style={{ imageRendering: "pixelated" }}
         onClick={(e) => handlePointer(e.clientX, e.clientY)}
         onMouseMove={(e) => {
           if (!isEditing) return;
@@ -469,7 +458,8 @@ export function RoomCanvas({
             <button
               key={dir}
               onClick={() => movePlayer(dir)}
-              className="w-10 h-10 bg-white/95 text-[#4a4a6a] rounded border border-[#ff6b9d]/30 text-sm backdrop-blur"
+              className="w-10 h-10 bg-[#f0e8d8] text-[#4a4030] rounded border-2 border-[#8b6914] text-sm"
+              style={{ imageRendering: "pixelated" }}
             >
               {{ up: "↑", down: "↓", left: "←", right: "→" }[dir]}
             </button>

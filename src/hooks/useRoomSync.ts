@@ -25,7 +25,7 @@ export function useRoomSync({
   enabled = true,
 }: UseRoomSyncOptions) {
   const [remotePlayers, setRemotePlayers] = useState<RoomPlayer[]>([]);
-  const [playerPos, setPlayerPos] = useState({ gridX: 8, gridY: 8 });
+  const [playerPos, setPlayerPos] = useState({ gridX: 6, gridY: 7 });
   const [direction, setDirection] = useState<Direction>("down");
   const [outfitPreviews, setOutfitPreviews] = useState<Map<string, AvatarConfig>>(new Map());
   const [stamps, setStamps] = useState<RoomStamp[]>([]);

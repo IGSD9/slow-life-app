@@ -1,12 +1,16 @@
-/** アイソメトリック（2:1）座標変換・ボクセル描画 */
+/** アイソメトリック（2:1）座標変換・GBA風ピクセル描画 */
 
-export const ISO_TILE_W = 52;
-export const ISO_TILE_H = 26;
-export const ISO_BLOCK_H = 22;
-export const ISO_WALL_LAYERS = 6;
+import { px, shade, snap } from "./pixelDraw";
 
-/** 奥左ロフト（段差付きベッドエリア） */
-export const LOFT_BOUNDS = { minX: 1, maxX: 6, minY: 1, maxY: 4 };
+/** 1マス ≈ 48px 相当（菱形幅96・高48） */
+export const ISO_TILE_W = 96;
+export const ISO_TILE_H = 48;
+export const ISO_BLOCK_H = 40;
+export const ISO_WALL_LAYERS = 5;
+export const WALL_CAP = 10;
+
+/** 奥左ロフト */
+export const LOFT_BOUNDS = { minX: 1, maxX: 4, minY: 1, maxY: 3 };
 
 export function isLoftCell(gridX: number, gridY: number): boolean {
   return (
@@ -21,14 +25,12 @@ export function floorElevation(gridX: number, gridY: number): number {
   return isLoftCell(gridX, gridY) ? 1 : 0;
 }
 
-/** @deprecated isLoftCell を使用 */
 export function isDeckCell(gridX: number, gridY: number): boolean {
   return isLoftCell(gridX, gridY);
 }
 
-/** タイル上面の立ち位置（足元＝タイル手前の接地点） */
 export function tileFootY(sy: number): number {
-  return sy + ISO_TILE_H;
+  return snap(sy + ISO_TILE_H);
 }
 
 export interface IsoPoint {
@@ -44,8 +46,8 @@ export interface GridPos {
 
 export function computeOrigin(gridW: number, gridH: number): IsoPoint {
   return {
-    x: gridH * (ISO_TILE_W / 2) + 16,
-    y: ISO_WALL_LAYERS * ISO_BLOCK_H + 32,
+    x: snap(gridH * (ISO_TILE_W / 2) + 24),
+    y: snap(ISO_WALL_LAYERS * ISO_BLOCK_H + WALL_CAP + 40),
   };
 }
 
@@ -59,8 +61,8 @@ export function gridToScreen(
   const z = gridZ ?? floorElevation(gridX, gridY);
   const origin = computeOrigin(gridW, gridH);
   return {
-    x: origin.x + (gridX - gridY) * (ISO_TILE_W / 2),
-    y: origin.y + (gridX + gridY) * (ISO_TILE_H / 2) - z * ISO_BLOCK_H,
+    x: snap(origin.x + (gridX - gridY) * (ISO_TILE_W / 2)),
+    y: snap(origin.y + (gridX + gridY) * (ISO_TILE_H / 2) - z * ISO_BLOCK_H),
   };
 }
 
@@ -83,21 +85,13 @@ export function screenToGrid(
 
 export function canvasSize(gridW: number, gridH: number) {
   const origin = computeOrigin(gridW, gridH);
-  const w = origin.x + gridW * (ISO_TILE_W / 2) + 24;
-  const h = origin.y + (gridW + gridH) * (ISO_TILE_H / 2) + ISO_WALL_LAYERS * ISO_BLOCK_H + 28;
+  const w = origin.x + gridW * (ISO_TILE_W / 2) + 32;
+  const h = origin.y + (gridW + gridH) * (ISO_TILE_H / 2) + ISO_WALL_LAYERS * ISO_BLOCK_H + 36;
   return { width: Math.ceil(w), height: Math.ceil(h) };
 }
 
 export function depthKey(gridX: number, gridY: number, z = 0) {
   return gridX + gridY + z * 0.01;
-}
-
-function shade(hex: string, amount: number): string {
-  const num = parseInt(hex.replace("#", ""), 16);
-  const r = Math.max(0, Math.min(255, ((num >> 16) & 0xff) + amount));
-  const g = Math.max(0, Math.min(255, ((num >> 8) & 0xff) + amount));
-  const b = Math.max(0, Math.min(255, (num & 0xff) + amount));
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
 
 function isoTilePath(
@@ -108,14 +102,42 @@ function isoTilePath(
   hh: number,
 ) {
   ctx.beginPath();
-  ctx.moveTo(sx, sy);
-  ctx.lineTo(sx + hw, sy + hh);
-  ctx.lineTo(sx, sy + hh * 2);
-  ctx.lineTo(sx - hw, sy + hh);
+  ctx.moveTo(snap(sx), snap(sy));
+  ctx.lineTo(snap(sx + hw), snap(sy + hh));
+  ctx.lineTo(snap(sx), snap(sy + hh * 2));
+  ctx.lineTo(snap(sx - hw), snap(sy + hh));
   ctx.closePath();
 }
 
-/** 床タイル（菱形の上面） */
+/** 木目ドット模様を菱形上面に描画 */
+function drawWoodGrain(
+  ctx: CanvasRenderingContext2D,
+  sx: number,
+  sy: number,
+  hw: number,
+  hh: number,
+  variant: number,
+) {
+  const dark = variant % 2 === 0 ? "#8a6838" : "#705028";
+  const light = variant % 2 === 0 ? "#d8b878" : "#c0a060";
+  const knot = "#584020";
+
+  ctx.strokeStyle = dark;
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 3; i++) {
+    const t = i / 2;
+    ctx.beginPath();
+    ctx.moveTo(snap(sx - hw * 0.55 + t * 4), snap(sy + hh * (0.45 + t * 0.35)));
+    ctx.lineTo(snap(sx + hw * 0.55 - t * 2), snap(sy + hh * (1.15 + t * 0.35)));
+    ctx.stroke();
+  }
+
+  px(ctx, sx - hw * 0.2, sy + hh * 0.7, 3, 2, knot);
+  px(ctx, sx + hw * 0.15, sy + hh * 1.2, 2, 2, knot);
+  px(ctx, sx - hw * 0.05, sy + hh * 1.0, 4, 1, light);
+}
+
+/** 床タイル（木目ドット絵） */
 export function drawIsoFloorTile(
   ctx: CanvasRenderingContext2D,
   sx: number,
@@ -123,45 +145,139 @@ export function drawIsoFloorTile(
   color: string,
   highlight = false,
   plank = false,
+  variant = 0,
 ) {
   const hw = ISO_TILE_W / 2;
   const hh = ISO_TILE_H / 2;
-  const top = highlight ? shade(color, 25) : color;
+  const top = highlight ? shade(color, 18) : color;
 
   isoTilePath(ctx, sx, sy, hw, hh);
-  const grad = ctx.createLinearGradient(sx - hw, sy, sx + hw, sy + hh * 2);
-  grad.addColorStop(0, shade(top, 8));
-  grad.addColorStop(0.45, top);
-  grad.addColorStop(1, shade(top, -14));
-  ctx.fillStyle = grad;
+  ctx.fillStyle = top;
   ctx.fill();
-
-  ctx.strokeStyle = shade(color, -40);
-  ctx.lineWidth = 0.75;
-  ctx.stroke();
-
-  ctx.strokeStyle = shade(color, 18);
-  ctx.lineWidth = 0.5;
-  ctx.beginPath();
-  ctx.moveTo(sx - hw * 0.15, sy + hh * 0.85);
-  ctx.lineTo(sx + hw * 0.55, sy + hh * 1.55);
+  ctx.strokeStyle = shade(color, -36);
+  ctx.lineWidth = 2;
   ctx.stroke();
 
   if (plank) {
-    ctx.strokeStyle = shade(color, -22);
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(sx - hw * 0.6, sy + hh * 0.5);
-    ctx.lineTo(sx + hw * 0.6, sy + hh * 1.5);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(sx - hw * 0.3, sy + hh * 1.1);
-    ctx.lineTo(sx + hw * 0.8, sy + hh * 1.9);
-    ctx.stroke();
+    drawWoodGrain(ctx, sx, sy, hw, hh, variant);
+  }
+
+  ctx.strokeStyle = shade(top, 22);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(snap(sx - hw * 0.1), snap(sy + hh * 0.9));
+  ctx.lineTo(snap(sx + hw * 0.45), snap(sy + hh * 1.45));
+  ctx.stroke();
+}
+
+/** レンガドット模様 */
+function drawBrickPattern(
+  ctx: CanvasRenderingContext2D,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  base: string,
+) {
+  const mortar = shade(base, -28);
+  const brickA = shade(base, 8);
+  const brickB = shade(base, -10);
+  const rowH = 8;
+  const colW = 14;
+
+  ctx.fillStyle = mortar;
+  ctx.fillRect(snap(x0), snap(y0), snap(x1 - x0), snap(y1 - y0));
+
+  for (let row = 0; y0 + row * rowH < y1; row++) {
+    const offset = row % 2 === 0 ? 0 : colW / 2;
+    for (let col = 0; x0 + col * colW + offset < x1; col++) {
+      const bx = snap(x0 + col * colW + offset + 1);
+      const by = snap(y0 + row * rowH + 1);
+      const bw = Math.min(colW - 2, snap(x1) - bx);
+      const bh = Math.min(rowH - 2, snap(y1) - by);
+      if (bw <= 0 || bh <= 0) continue;
+      ctx.fillStyle = (row + col) % 2 === 0 ? brickA : brickB;
+      ctx.fillRect(bx, by, bw, bh);
+    }
   }
 }
 
-/** デッキ段差の側面 */
+/** 3面ボクセル（左上光源・フラット色） */
+export function drawIsoVoxel(
+  ctx: CanvasRenderingContext2D,
+  sx: number,
+  sy: number,
+  top: string,
+  left: string,
+  right: string,
+  layers = 1,
+) {
+  const hw = ISO_TILE_W / 2;
+  const hh = ISO_TILE_H / 2;
+  const h = ISO_BLOCK_H * layers;
+  const baseY = sy + hh;
+
+  ctx.beginPath();
+  ctx.moveTo(snap(sx - hw), snap(baseY - h + hh));
+  ctx.lineTo(snap(sx), snap(baseY - h));
+  ctx.lineTo(snap(sx + hw), snap(baseY - h + hh));
+  ctx.lineTo(snap(sx), snap(baseY - h + hh * 2));
+  ctx.closePath();
+  ctx.fillStyle = top;
+  ctx.fill();
+  ctx.strokeStyle = shade(top, -40);
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(snap(sx - hw), snap(baseY - h + hh));
+  ctx.lineTo(snap(sx - hw), snap(baseY + hh));
+  ctx.lineTo(snap(sx), snap(baseY + hh * 2));
+  ctx.lineTo(snap(sx), snap(baseY - h + hh * 2));
+  ctx.closePath();
+  ctx.fillStyle = left;
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(snap(sx + hw), snap(baseY - h + hh));
+  ctx.lineTo(snap(sx + hw), snap(baseY + hh));
+  ctx.lineTo(snap(sx), snap(baseY + hh * 2));
+  ctx.lineTo(snap(sx), snap(baseY - h + hh * 2));
+  ctx.closePath();
+  ctx.fillStyle = right;
+  ctx.fill();
+
+  ctx.strokeStyle = shade(right, -20);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(snap(sx - hw), snap(baseY - h + hh));
+  ctx.lineTo(snap(sx - hw), snap(baseY + hh));
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(snap(sx + hw), snap(baseY - h + hh));
+  ctx.lineTo(snap(sx + hw), snap(baseY + hh));
+  ctx.stroke();
+}
+
+/** @deprecated drawIsoVoxel を使用 */
+export function drawIsoBlock(
+  ctx: CanvasRenderingContext2D,
+  sx: number,
+  sy: number,
+  color: string,
+  layers = 1,
+) {
+  drawIsoVoxel(
+    ctx,
+    sx,
+    sy,
+    shade(color, 28),
+    shade(color, -6),
+    shade(color, -32),
+    layers,
+  );
+}
+
 export function drawDeckRiser(
   ctx: CanvasRenderingContext2D,
   sx: number,
@@ -171,7 +287,7 @@ export function drawDeckRiser(
   drawIsoBlock(ctx, sx, sy, color, 1);
 }
 
-/** 背面壁を1枚の面として描画（タイル間の隙間から背景が見えないようにする） */
+/** 背面壁（レンガ＋厚みキャップ） */
 export function drawContinuousBackWall(
   ctx: CanvasRenderingContext2D,
   gridW: number,
@@ -190,38 +306,61 @@ export function drawContinuousBackWall(
   const baseL = left.y + hh;
   const baseR = right.y + hh;
 
+  ctx.save();
   ctx.beginPath();
-  ctx.moveTo(left.x - hw, baseL - h + hh);
-  ctx.lineTo(left.x, baseL - h);
-  ctx.lineTo(right.x, baseR - h);
-  ctx.lineTo(right.x + hw, baseR - h + hh);
-  ctx.lineTo(right.x, baseR - h + hh * 2);
-  ctx.lineTo(left.x, baseL - h + hh * 2);
+  ctx.moveTo(snap(left.x - hw), snap(baseL - h + hh));
+  ctx.lineTo(snap(left.x), snap(baseL - h));
+  ctx.lineTo(snap(right.x), snap(baseR - h));
+  ctx.lineTo(snap(right.x + hw), snap(baseR - h + hh));
+  ctx.lineTo(snap(right.x + hw), snap(baseR - h + hh + WALL_CAP));
+  ctx.lineTo(snap(left.x - hw), snap(baseL - h + hh + WALL_CAP));
   ctx.closePath();
-  ctx.fillStyle = shade(color, 30);
-  ctx.fill();
+  ctx.clip();
+  drawBrickPattern(
+    ctx,
+    left.x - hw,
+    baseL - h,
+    right.x + hw,
+    baseR + hh,
+    color,
+  );
+  ctx.restore();
 
   ctx.beginPath();
-  ctx.moveTo(left.x - hw, baseL - h + hh);
-  ctx.lineTo(left.x - hw, baseL + hh);
-  ctx.lineTo(right.x + hw, baseR + hh);
-  ctx.lineTo(right.x + hw, baseR - h + hh);
+  ctx.moveTo(snap(left.x - hw), snap(baseL - h + hh));
+  ctx.lineTo(snap(left.x - hw), snap(baseL + hh));
+  ctx.lineTo(snap(right.x + hw), snap(baseR + hh));
+  ctx.lineTo(snap(right.x + hw), snap(baseR - h + hh));
   ctx.closePath();
-  ctx.fillStyle = shade(color, -12);
+  ctx.fillStyle = shade(color, -18);
   ctx.fill();
+  ctx.strokeStyle = shade(color, -40);
+  ctx.lineWidth = 2;
+  ctx.stroke();
 
   ctx.beginPath();
-  ctx.moveTo(left.x - hw, baseL - h + hh);
-  ctx.lineTo(left.x, baseL - h + hh * 2);
-  ctx.lineTo(left.x, baseL + hh * 2);
-  ctx.lineTo(left.x - hw, baseL + hh);
+  ctx.moveTo(snap(left.x - hw), snap(baseL - h + hh));
+  ctx.lineTo(snap(left.x), snap(baseL - h + hh * 2));
+  ctx.lineTo(snap(left.x), snap(baseL + hh * 2));
+  ctx.lineTo(snap(left.x - hw), snap(baseL + hh));
   ctx.closePath();
-  ctx.fillStyle = shade(color, -30);
+  ctx.fillStyle = shade(color, -34);
   ctx.fill();
 
+  ctx.fillStyle = shade(color, 20);
+  ctx.beginPath();
+  ctx.moveTo(snap(left.x - hw), snap(baseL - h + hh));
+  ctx.lineTo(snap(right.x + hw), snap(baseR - h + hh));
+  ctx.lineTo(snap(right.x + hw), snap(baseR - h + hh + WALL_CAP));
+  ctx.lineTo(snap(left.x - hw), snap(baseL - h + hh + WALL_CAP));
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = shade(color, -12);
+  ctx.lineWidth = 2;
+  ctx.stroke();
 }
 
-/** 左側壁を1枚の面として描画 */
+/** 左側壁（コンクリート＋厚み） */
 export function drawContinuousLeftWall(
   ctx: CanvasRenderingContext2D,
   gridW: number,
@@ -240,29 +379,66 @@ export function drawContinuousLeftWall(
   const baseB = back.y + hh;
   const baseF = front.y + hh;
 
+  const concrete = shade(color, -8);
+
+  ctx.save();
   ctx.beginPath();
-  ctx.moveTo(back.x - hw, baseB - h + hh);
-  ctx.lineTo(back.x, baseB - h);
-  ctx.lineTo(front.x, baseF - h);
-  ctx.lineTo(front.x - hw, baseF - h + hh);
-  ctx.lineTo(front.x, baseF - h + hh * 2);
-  ctx.lineTo(back.x, baseB - h + hh * 2);
+  ctx.moveTo(snap(back.x - hw), snap(baseB - h + hh));
+  ctx.lineTo(snap(back.x), snap(baseB - h));
+  ctx.lineTo(snap(front.x), snap(baseF - h));
+  ctx.lineTo(snap(front.x - hw), snap(baseF - h + hh));
+  ctx.lineTo(snap(front.x - hw), snap(baseF - h + hh + WALL_CAP));
+  ctx.lineTo(snap(back.x - hw), snap(baseB - h + hh + WALL_CAP));
   ctx.closePath();
-  ctx.fillStyle = shade(color, 30);
-  ctx.fill();
+  ctx.clip();
+
+  const x0 = back.x - hw;
+  const yTop = baseB - h;
+  const x1 = back.x + hw * 0.3;
+  const yBot = baseF + hh;
+  ctx.fillStyle = concrete;
+  ctx.fillRect(snap(x0), snap(yTop), snap(x1 - x0), snap(yBot - yTop));
+
+  ctx.strokeStyle = shade(concrete, -22);
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 8; i++) {
+    const ly = snap(yTop + 6 + i * 12);
+    ctx.beginPath();
+    ctx.moveTo(snap(x0 + 2), ly);
+    ctx.lineTo(snap(x1 - 2), ly);
+    ctx.stroke();
+  }
+  for (let i = 0; i < 5; i++) {
+    const lx = snap(x0 + 4 + i * 8);
+    ctx.beginPath();
+    ctx.moveTo(lx, snap(yTop + 2));
+    ctx.lineTo(lx, snap(yBot - 2));
+    ctx.stroke();
+  }
+  ctx.restore();
 
   ctx.beginPath();
-  ctx.moveTo(back.x - hw, baseB - h + hh);
-  ctx.lineTo(back.x - hw, baseB + hh);
-  ctx.lineTo(front.x - hw, baseF + hh);
-  ctx.lineTo(front.x - hw, baseF - h + hh);
+  ctx.moveTo(snap(back.x - hw), snap(baseB - h + hh));
+  ctx.lineTo(snap(back.x - hw), snap(baseB + hh));
+  ctx.lineTo(snap(front.x - hw), snap(baseF + hh));
+  ctx.lineTo(snap(front.x - hw), snap(baseF - h + hh));
   ctx.closePath();
-  ctx.fillStyle = shade(color, -12);
+  ctx.fillStyle = shade(color, -28);
   ctx.fill();
+  ctx.strokeStyle = shade(color, -44);
+  ctx.lineWidth = 2;
+  ctx.stroke();
 
+  ctx.fillStyle = shade(color, 14);
+  ctx.beginPath();
+  ctx.moveTo(snap(back.x - hw), snap(baseB - h + hh));
+  ctx.lineTo(snap(front.x - hw), snap(baseF - h + hh));
+  ctx.lineTo(snap(front.x - hw), snap(baseF - h + hh + WALL_CAP));
+  ctx.lineTo(snap(back.x - hw), snap(baseB - h + hh + WALL_CAP));
+  ctx.closePath();
+  ctx.fill();
 }
 
-/** パターン壁（ピンク系ドット柄） */
 export function drawIsoPatternWall(
   ctx: CanvasRenderingContext2D,
   sx: number,
@@ -273,42 +449,20 @@ export function drawIsoPatternWall(
   clipRightEdge = false,
 ) {
   drawIsoBlock(ctx, sx, sy, color, layers);
-
-  const hw = ISO_TILE_W / 2;
-  const hh = ISO_TILE_H / 2;
-  const baseY = sy + hh;
-  const h = ISO_BLOCK_H * layers;
-  const lineRight = clipRightEdge ? sx + hw * 0.15 : sx + hw * 0.7;
-
-  ctx.save();
-  ctx.strokeStyle = shade(color, 40);
-  ctx.lineWidth = 0.4;
-  for (let i = 0; i < 3; i++) {
-    const oy = baseY - h + 8 + i * 10;
-    ctx.beginPath();
-    ctx.moveTo(sx - hw * 0.7, oy);
-    ctx.lineTo(lineRight, oy + 4);
-    ctx.stroke();
-  }
-
   if (withWindow) {
-    const wy = baseY - h + 14;
-    ctx.fillStyle = "#a8e4ff";
-    ctx.fillRect(sx - 5, wy, 10, 12);
+    const hw = ISO_TILE_W / 2;
+    const hh = ISO_TILE_H / 2;
+    const baseY = sy + hh;
+    const h = ISO_BLOCK_H * layers;
+    const wy = snap(baseY - h + 20);
+    px(ctx, sx - 8, wy, 16, 18, "#a8e4ff");
     ctx.strokeStyle = "#f5f0e8";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(sx - 5, wy, 10, 12);
-    ctx.beginPath();
-    ctx.moveTo(sx, wy);
-    ctx.lineTo(sx, wy + 12);
-    ctx.moveTo(sx - 5, wy + 6);
-    ctx.lineTo(sx + 5, wy + 6);
-    ctx.stroke();
+    ctx.lineWidth = 2;
+    ctx.strokeRect(snap(sx - 8), wy, 16, 18);
   }
-  ctx.restore();
+  void clipRightEdge;
 }
 
-/** 部屋の外枠（編集時・手前開放の3辺） */
 export function drawRoomBoundsOutline(
   ctx: CanvasRenderingContext2D,
   gridW: number,
@@ -319,101 +473,34 @@ export function drawRoomBoundsOutline(
   const frontRight = gridToScreen(gridW - 0.5, gridH - 0.5, gridW, gridH, 0);
   const frontLeft = gridToScreen(0.5, gridH - 0.5, gridW, gridH, 0);
 
-  ctx.strokeStyle = "rgba(80, 160, 255, 0.55)";
+  ctx.strokeStyle = "#5090d0";
   ctx.lineWidth = 2;
-  ctx.setLineDash([4, 3]);
+  ctx.setLineDash([6, 4]);
   ctx.beginPath();
-  ctx.moveTo(backLeft.x, backLeft.y);
-  ctx.lineTo(backRight.x, backRight.y);
-  ctx.lineTo(frontRight.x, frontRight.y);
-  ctx.lineTo(frontLeft.x, frontLeft.y);
+  ctx.moveTo(snap(backLeft.x), snap(backLeft.y));
+  ctx.lineTo(snap(backRight.x), snap(backRight.y));
+  ctx.lineTo(snap(frontRight.x), snap(frontRight.y));
+  ctx.lineTo(snap(frontLeft.x), snap(frontLeft.y));
   ctx.stroke();
   ctx.setLineDash([]);
 }
 
-/** 明るい空背景 */
 export function drawSkyBackground(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
 ) {
-  const bg = ctx.createLinearGradient(0, 0, 0, height);
-  bg.addColorStop(0, "#c5ecfa");
-  bg.addColorStop(0.45, "#dff5fc");
-  bg.addColorStop(1, "#b8dce8");
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, width, height);
+  const bands = ["#88c8f0", "#98d4f4", "#a8dcf6", "#b0e0f8"];
+  const bandH = Math.ceil(height / bands.length);
+  for (let i = 0; i < bands.length; i++) {
+    px(ctx, 0, i * bandH, width, bandH, bands[i]);
+  }
+  for (let i = 0; i < 6; i++) {
+    px(ctx, 20 + i * 48, 12 + (i % 3) * 8, 20, 6, "#ffffff");
+    px(ctx, 22 + i * 48, 14 + (i % 3) * 8, 14, 4, "#e8f4ff");
+  }
 }
 
-/** ボクセルブロック（上面+左面+右面） */
-export function drawIsoBlock(
-  ctx: CanvasRenderingContext2D,
-  sx: number,
-  sy: number,
-  color: string,
-  layers = 1,
-) {
-  const hw = ISO_TILE_W / 2;
-  const hh = ISO_TILE_H / 2;
-  const h = ISO_BLOCK_H * layers;
-  const top = shade(color, 30);
-  const left = shade(color, -30);
-  const right = shade(color, -12);
-
-  const baseY = sy + hh;
-
-  ctx.beginPath();
-  ctx.moveTo(sx - hw, baseY - h + hh);
-  ctx.lineTo(sx, baseY - h);
-  ctx.lineTo(sx + hw, baseY - h + hh);
-  ctx.lineTo(sx, baseY - h + hh * 2);
-  ctx.closePath();
-  const topGrad = ctx.createLinearGradient(sx - hw, baseY - h, sx + hw, baseY);
-  topGrad.addColorStop(0, shade(top, 12));
-  topGrad.addColorStop(1, shade(top, -8));
-  ctx.fillStyle = topGrad;
-  ctx.fill();
-  ctx.strokeStyle = shade(color, -45);
-  ctx.lineWidth = 0.75;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.moveTo(sx - hw, baseY - h + hh);
-  ctx.lineTo(sx - hw, baseY + hh);
-  ctx.lineTo(sx, baseY + hh * 2);
-  ctx.lineTo(sx, baseY - h + hh * 2);
-  ctx.closePath();
-  const leftGrad = ctx.createLinearGradient(sx - hw, baseY - h, sx, baseY + hh);
-  leftGrad.addColorStop(0, shade(left, -10));
-  leftGrad.addColorStop(1, left);
-  ctx.fillStyle = leftGrad;
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(sx + hw, baseY - h + hh);
-  ctx.lineTo(sx + hw, baseY + hh);
-  ctx.lineTo(sx, baseY + hh * 2);
-  ctx.lineTo(sx, baseY - h + hh * 2);
-  ctx.closePath();
-  const rightGrad = ctx.createLinearGradient(sx + hw, baseY - h, sx, baseY + hh);
-  rightGrad.addColorStop(0, shade(right, 6));
-  rightGrad.addColorStop(1, right);
-  ctx.fillStyle = rightGrad;
-  ctx.fill();
-
-  ctx.strokeStyle = shade(color, -55);
-  ctx.lineWidth = 0.5;
-  ctx.beginPath();
-  ctx.moveTo(sx - hw, baseY - h + hh);
-  ctx.lineTo(sx - hw, baseY + hh);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(sx + hw, baseY - h + hh);
-  ctx.lineTo(sx + hw, baseY + hh);
-  ctx.stroke();
-}
-
-/** 壁ブロック（部屋の外周） */
 export function drawIsoWall(
   ctx: CanvasRenderingContext2D,
   sx: number,
@@ -424,7 +511,6 @@ export function drawIsoWall(
   drawIsoBlock(ctx, sx, sy, color, layers);
 }
 
-/** 浮遊台座（奥2面のみ・手前は開放） */
 export function drawPlatformBase(
   ctx: CanvasRenderingContext2D,
   gridW: number,
@@ -439,33 +525,29 @@ export function drawPlatformBase(
   const backRight = gridToScreen(floorMaxX + 0.5, floorMinY - 0.5, gridW, gridH, 0);
   const frontLeft = gridToScreen(floorMinX - 0.5, floorMaxY + 0.5, gridW, gridH, 0);
 
-  const baseLayers = 2;
-  const rimDepth = 5;
-  for (let layer = baseLayers; layer >= 1; layer--) {
-    const o = layer * 4;
-    ctx.fillStyle = shade(color, -layer * 15);
+  const rimDepth = 8;
+  for (let layer = 2; layer >= 1; layer--) {
+    const o = layer * 6;
+    ctx.fillStyle = shade(color, -layer * 18);
 
-    // 背面の縁
     ctx.beginPath();
-    ctx.moveTo(backLeft.x, backLeft.y + o);
-    ctx.lineTo(backRight.x, backRight.y + o);
-    ctx.lineTo(backRight.x, backRight.y + o + rimDepth);
-    ctx.lineTo(backLeft.x, backLeft.y + o + rimDepth);
+    ctx.moveTo(snap(backLeft.x), snap(backLeft.y + o));
+    ctx.lineTo(snap(backRight.x), snap(backRight.y + o));
+    ctx.lineTo(snap(backRight.x), snap(backRight.y + o + rimDepth));
+    ctx.lineTo(snap(backLeft.x), snap(backLeft.y + o + rimDepth));
     ctx.closePath();
     ctx.fill();
 
-    // 左側面の縁（奥に接続）
     ctx.beginPath();
-    ctx.moveTo(backLeft.x, backLeft.y + o);
-    ctx.lineTo(frontLeft.x, frontLeft.y + o);
-    ctx.lineTo(frontLeft.x, frontLeft.y + o + rimDepth);
-    ctx.lineTo(backLeft.x, backLeft.y + o + rimDepth);
+    ctx.moveTo(snap(backLeft.x), snap(backLeft.y + o));
+    ctx.lineTo(snap(frontLeft.x), snap(frontLeft.y + o));
+    ctx.lineTo(snap(frontLeft.x), snap(frontLeft.y + o + rimDepth));
+    ctx.lineTo(snap(backLeft.x), snap(backLeft.y + o + rimDepth));
     ctx.closePath();
     ctx.fill();
   }
 }
 
-/** 奥2面の壁（背面 y=0 + 左側面 x=0）。手前・右側は開放 */
 export function isRoomWallCell(gridX: number, gridY: number, gridW: number): boolean {
   if (gridY === 0) return true;
   if (gridX === 0 && gridY > 0) return true;
@@ -495,42 +577,42 @@ export function drawNameTag(
   isAdmin?: boolean,
 ) {
   const footY = tileFootY(sy);
-  let labelY = footY - CHARACTER_DISPLAY_HEIGHT - 8;
+  let labelY = footY - CHARACTER_DISPLAY_HEIGHT - 10;
   ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
 
   const lines: { text: string; color: string; font: string }[] = [];
-  if (titleName) lines.push({ text: titleName, color: "#f5a623", font: "bold 9px monospace" });
+  if (titleName) lines.push({ text: titleName, color: "#d08820", font: "bold 10px monospace" });
   lines.push({
     text: displayName,
-    color: isAdmin ? "#f5d76e" : "#ffffff",
-    font: "bold 10px monospace",
+    color: isAdmin ? "#f0d050" : "#ffffff",
+    font: "bold 11px monospace",
   });
-  if (isAdmin) lines.push({ text: "[管理者]", color: "#e94560", font: "8px monospace" });
+  if (isAdmin) lines.push({ text: "[管理者]", color: "#e04060", font: "9px monospace" });
 
   let maxW = 0;
   for (const line of lines) {
     ctx.font = line.font;
     maxW = Math.max(maxW, ctx.measureText(line.text).width);
   }
-  const padX = 6;
-  const padY = 3;
-  const lineH = 11;
+  const padX = 8;
+  const padY = 4;
+  const lineH = 12;
   const boxH = lines.length * lineH + padY * 2;
-  const boxW = maxW + padX * 2;
-  const boxTop = labelY - lineH * lines.length - padY + 4;
+  const boxW = snap(maxW + padX * 2);
+  const boxTop = snap(labelY - lineH * lines.length - padY + 4);
+  const boxLeft = snap(sx - boxW / 2);
 
-  ctx.fillStyle = "rgba(8, 10, 22, 0.72)";
-  ctx.beginPath();
-  ctx.roundRect(sx - boxW / 2, boxTop, boxW, boxH, 4);
-  ctx.fill();
-  ctx.strokeStyle = "rgba(74, 240, 255, 0.25)";
-  ctx.lineWidth = 0.75;
-  ctx.stroke();
+  px(ctx, boxLeft, boxTop, boxW, boxH, "#1a2030");
+  ctx.strokeStyle = "#5090c0";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(boxLeft, boxTop, boxW, boxH);
+  px(ctx, boxLeft, boxTop, boxW, 2, "#70b0e0");
 
   for (const line of lines) {
     ctx.fillStyle = line.color;
     ctx.font = line.font;
-    ctx.fillText(line.text, sx, labelY);
+    ctx.fillText(line.text, snap(sx), snap(labelY));
     labelY -= lineH;
   }
 }

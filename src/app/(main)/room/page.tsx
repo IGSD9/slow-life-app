@@ -57,7 +57,7 @@ export default function RoomPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [nearPC, setNearPC] = useState(false);
   const [showDesktop, setShowDesktop] = useState(false);
-  const [selectedPos, setSelectedPos] = useState({ gridX: 8, gridY: 8 });
+  const [selectedPos, setSelectedPos] = useState({ gridX: 6, gridY: 7 });
   const [layout, setLayout] = useState<RoomLayout>([]);
   const [wallpaperId, setWallpaperId] = useState("wall_default");
   const [floorId, setFloorId] = useState("floor_default");

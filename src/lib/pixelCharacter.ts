@@ -64,7 +64,7 @@ const HAT_BAND = "#c0392b";
 
 const SPRITE_W = 24;
 const SPRITE_H = 34;
-const SCALE = 4;
+const SCALE = 2;
 
 export const CHARACTER_DISPLAY_HEIGHT = SPRITE_H * SCALE;
 export const CHARACTER_DISPLAY_WIDTH = SPRITE_W * SCALE;
