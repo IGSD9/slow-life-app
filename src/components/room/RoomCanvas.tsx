@@ -13,16 +13,23 @@ import { isNearPC, resolvePCPosition } from "@/lib/roomPc";
 import {
   canvasSize,
   depthKey,
+  DECK_BOUNDS,
+  drawDeckRiser,
   drawIsoBlock,
   drawIsoCharacter,
   drawIsoFloorTile,
-  drawIsoWall,
+  drawIsoPatternWall,
   drawNameTag,
   drawPlatformBase,
+  drawRoomBoundsOutline,
+  drawSkyBackground,
+  floorElevation,
   gridToScreen,
+  isDeckCell,
   screenToGrid,
   ISO_BLOCK_H,
   ISO_WALL_LAYERS,
+  shade,
 } from "@/lib/isometric";
 
 interface ItemInfo {
@@ -61,15 +68,21 @@ const FURNITURE: Record<string, { color: string; layers: number }> = {
 };
 
 const WALLPAPER: Record<string, string> = {
-  wall_default: "#6b5b95",
-  wall_blue: "#4a7ab5",
-  wall_pink: "#b56b8a",
+  wall_default: "#e8a8c8",
+  wall_blue: "#8ab4d9",
+  wall_pink: "#f0b0d0",
 };
 
 const FLOOR: Record<string, string> = {
-  floor_default: "#5c4033",
-  floor_wood: "#8b6914",
-  floor_tile: "#6a6a7a",
+  floor_default: "#c49a6c",
+  floor_wood: "#b8895a",
+  floor_tile: "#9a9aaa",
+};
+
+const DECK_FLOOR: Record<string, string> = {
+  floor_default: "#d4aa78",
+  floor_wood: "#c99760",
+  floor_tile: "#b0b0c0",
 };
 
 function getOccupiedCells(layout: RoomLayout): Set<string> {
@@ -78,8 +91,9 @@ function getOccupiedCells(layout: RoomLayout): Set<string> {
   return cells;
 }
 
+/** 3面壁（正面は開放してダイオラマ風に） */
 function isWallCell(x: number, y: number): boolean {
-  return x === 0 || y === 0 || x === GRID_WIDTH - 1 || y === GRID_HEIGHT - 1;
+  return x === 0 || y === 0 || x === GRID_WIDTH - 1;
 }
 
 export function RoomCanvas({
@@ -119,57 +133,91 @@ export function RoomCanvas({
     ctx.clearRect(0, 0, CW, CH);
     ctx.imageSmoothingEnabled = false;
 
-    const bg = ctx.createLinearGradient(0, 0, 0, CH);
-    bg.addColorStop(0, "#1a1030");
-    bg.addColorStop(0.5, "#2d1b4e");
-    bg.addColorStop(1, "#0a0a14");
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, CW, CH);
+    drawSkyBackground(ctx, CW, CH);
 
-    const floorColor = FLOOR[floorId] ?? "#5c4033";
-    const wallColor = WALLPAPER[wallpaperId] ?? "#6b5b95";
-    const baseColor = "#3d2b4f";
+    const floorColor = FLOOR[floorId] ?? "#c49a6c";
+    const deckColor = DECK_FLOOR[floorId] ?? "#d4aa78";
+    const wallColor = WALLPAPER[wallpaperId] ?? "#e8a8c8";
+    const baseColor = "#8a9aaa";
+    const usePlank = floorId !== "floor_tile";
 
     drawPlatformBase(ctx, GRID_WIDTH, GRID_HEIGHT, baseColor);
 
-    const floorCells: { x: number; y: number; key: number }[] = [];
-    for (let y = 0; y < GRID_HEIGHT; y++) {
-      for (let x = 0; x < GRID_WIDTH; x++) {
-        if (!isWallCell(x, y)) {
-          floorCells.push({ x, y, key: depthKey(x, y) });
-        }
+    const floorCells: { x: number; y: number; key: number; z: number }[] = [];
+    for (let y = 1; y < GRID_HEIGHT; y++) {
+      for (let x = 1; x < GRID_WIDTH - 1; x++) {
+        const z = floorElevation(x, y);
+        floorCells.push({ x, y, key: depthKey(x, y, z), z });
       }
     }
     floorCells.sort((a, b) => a.key - b.key);
 
-    for (const { x, y } of floorCells) {
-      const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT);
+    const riserCells: { x: number; y: number; key: number }[] = [];
+    for (let y = DECK_BOUNDS.minY; y <= DECK_BOUNDS.maxY; y++) {
+      for (let x = DECK_BOUNDS.minX; x <= DECK_BOUNDS.maxX; x++) {
+        const adj: [number, number][] = [
+          [x - 1, y],
+          [x + 1, y],
+          [x, y - 1],
+          [x, y + 1],
+        ];
+        for (const [nx, ny] of adj) {
+          if (isDeckCell(x, y) && !isDeckCell(nx, ny) && !isWallCell(nx, ny)) {
+            if (nx >= 1 && nx < GRID_WIDTH - 1 && ny >= 1 && ny < GRID_HEIGHT) {
+              riserCells.push({ x: nx, y: ny, key: depthKey(nx, ny) });
+            }
+          }
+        }
+      }
+    }
+    const seenRisers = new Set<string>();
+    for (const { x, y, key } of riserCells) {
+      const k = `${x},${y}`;
+      if (seenRisers.has(k)) continue;
+      seenRisers.add(k);
+      const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT, 0);
+      drawDeckRiser(ctx, sx, sy, shade(floorColor, -18));
+    }
+
+    for (const { x, y, z } of floorCells) {
+      const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT, z);
       const isHighlight =
-        isEditing &&
-        hoverCell?.gridX === x &&
-        hoverCell?.gridY === y;
+        isEditing && hoverCell?.gridX === x && hoverCell?.gridY === y;
       const isPlayer = playerPos.gridX === x && playerPos.gridY === y;
+      const onDeck = z > 0;
       drawIsoFloorTile(
         ctx,
         sx,
         sy,
-        floorColor,
+        onDeck ? deckColor : floorColor,
         isHighlight || isPlayer,
+        usePlank,
       );
     }
 
-    const wallCells: { x: number; y: number; key: number; layers: number }[] = [];
+    const wallCells: { x: number; y: number; key: number; layers: number; window: boolean }[] = [];
     for (let y = 0; y < GRID_HEIGHT; y++) {
       for (let x = 0; x < GRID_WIDTH; x++) {
         if (isWallCell(x, y)) {
-          wallCells.push({ x, y, key: depthKey(x, y), layers: ISO_WALL_LAYERS });
+          const isBack = y === 0 && x > 0 && x < GRID_WIDTH - 1;
+          wallCells.push({
+            x,
+            y,
+            key: depthKey(x, y),
+            layers: ISO_WALL_LAYERS,
+            window: isBack && x % 3 === 1,
+          });
         }
       }
     }
     wallCells.sort((a, b) => a.key - b.key);
-    for (const { x, y, layers } of wallCells) {
-      const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT);
-      drawIsoWall(ctx, sx, sy, wallColor, layers);
+    for (const { x, y, layers, window } of wallCells) {
+      const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT, 0);
+      drawIsoPatternWall(ctx, sx, sy, wallColor, layers, window);
+    }
+
+    if (isEditing) {
+      drawRoomBoundsOutline(ctx, GRID_WIDTH, GRID_HEIGHT);
     }
 
     const furniture = [...layout].sort(
@@ -179,7 +227,8 @@ export function RoomCanvas({
       const item = itemMap.get(placed.itemId);
       if (!item) continue;
       const def = FURNITURE[item.spriteKey] ?? { color: "#666", layers: 1 };
-      const { x: sx, y: sy } = gridToScreen(placed.gridX, placed.gridY, GRID_WIDTH, GRID_HEIGHT);
+      const z = floorElevation(placed.gridX, placed.gridY);
+      const { x: sx, y: sy } = gridToScreen(placed.gridX, placed.gridY, GRID_WIDTH, GRID_HEIGHT, z);
       drawIsoBlock(ctx, sx, sy, def.color, def.layers);
 
       if (item.spriteKey === "furniture_pc_01") {
@@ -199,7 +248,8 @@ export function RoomCanvas({
       title?: string,
       admin?: boolean,
     ) => {
-      const { x: sx, y: sy } = gridToScreen(gx, gy, GRID_WIDTH, GRID_HEIGHT);
+      const z = floorElevation(gx, gy);
+      const { x: sx, y: sy } = gridToScreen(gx, gy, GRID_WIDTH, GRID_HEIGHT, z);
       drawIsoCharacter(ctx, sx, sy, body, shirt);
       drawNameTag(ctx, sx, sy, name, title, admin);
     };
@@ -218,7 +268,8 @@ export function RoomCanvas({
     }
 
     for (const stamp of stamps) {
-      const { x: sx, y: sy } = gridToScreen(stamp.gridX, stamp.gridY, GRID_WIDTH, GRID_HEIGHT);
+      const z = floorElevation(stamp.gridX, stamp.gridY);
+      const { x: sx, y: sy } = gridToScreen(stamp.gridX, stamp.gridY, GRID_WIDTH, GRID_HEIGHT, z);
       ctx.fillStyle = "#e94560";
       ctx.font = "14px monospace";
       ctx.textAlign = "center";
@@ -235,7 +286,8 @@ export function RoomCanvas({
       isAdmin,
     );
 
-    const { x: px, y: py } = gridToScreen(playerPos.gridX, playerPos.gridY, GRID_WIDTH, GRID_HEIGHT);
+    const pz = floorElevation(playerPos.gridX, playerPos.gridY);
+    const { x: px, y: py } = gridToScreen(playerPos.gridX, playerPos.gridY, GRID_WIDTH, GRID_HEIGHT, pz);
     const arrow = { up: "▲", down: "▼", left: "◀", right: "▶" }[direction];
     ctx.fillStyle = "rgba(255,255,255,0.8)";
     ctx.font = "9px monospace";
@@ -284,7 +336,7 @@ export function RoomCanvas({
       const [dx, dy] = delta[dir];
       const prev = playerPos;
       const newX = Math.max(1, Math.min(GRID_WIDTH - 2, prev.gridX + dx));
-      const newY = Math.max(1, Math.min(GRID_HEIGHT - 2, prev.gridY + dy));
+      const newY = Math.max(1, Math.min(GRID_HEIGHT - 1, prev.gridY + dy));
       if (getOccupiedCells(layout).has(`${newX},${newY}`)) return;
 
       if (controlledPos) {
@@ -368,7 +420,7 @@ export function RoomCanvas({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-xl border-2 border-[#e94560]/30 shadow-lg shadow-[#e94560]/10">
+    <div className="relative overflow-hidden rounded-xl border-2 border-[#7ec8e8]/50 shadow-lg shadow-[#7ec8e8]/20">
       <canvas
         ref={canvasRef}
         width={CW}

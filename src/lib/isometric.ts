@@ -3,7 +3,26 @@
 export const ISO_TILE_W = 28;
 export const ISO_TILE_H = 14;
 export const ISO_BLOCK_H = 12;
-export const ISO_WALL_LAYERS = 4;
+export const ISO_WALL_LAYERS = 6;
+
+/** 中央の段差付きウッドデッキ（参考: ハウジングカスタム） */
+export const DECK_BOUNDS = { minX: 4, maxX: 11, minY: 3, maxY: 7 };
+
+export function floorElevation(gridX: number, gridY: number): number {
+  if (
+    gridX >= DECK_BOUNDS.minX &&
+    gridX <= DECK_BOUNDS.maxX &&
+    gridY >= DECK_BOUNDS.minY &&
+    gridY <= DECK_BOUNDS.maxY
+  ) {
+    return 1;
+  }
+  return 0;
+}
+
+export function isDeckCell(gridX: number, gridY: number): boolean {
+  return floorElevation(gridX, gridY) > 0;
+}
 
 export interface IsoPoint {
   x: number;
@@ -28,12 +47,13 @@ export function gridToScreen(
   gridY: number,
   gridW: number,
   gridH: number,
-  gridZ = 0,
+  gridZ?: number,
 ): IsoPoint {
+  const z = gridZ ?? floorElevation(gridX, gridY);
   const origin = computeOrigin(gridW, gridH);
   return {
     x: origin.x + (gridX - gridY) * (ISO_TILE_W / 2),
-    y: origin.y + (gridX + gridY) * (ISO_TILE_H / 2) - gridZ * ISO_BLOCK_H,
+    y: origin.y + (gridX + gridY) * (ISO_TILE_H / 2) - z * ISO_BLOCK_H,
   };
 }
 
@@ -80,6 +100,7 @@ export function drawIsoFloorTile(
   sy: number,
   color: string,
   highlight = false,
+  plank = false,
 ) {
   const hw = ISO_TILE_W / 2;
   const hh = ISO_TILE_H / 2;
@@ -99,6 +120,19 @@ export function drawIsoFloorTile(
   ctx.lineWidth = 0.5;
   ctx.stroke();
 
+  if (plank) {
+    ctx.strokeStyle = shade(color, -18);
+    ctx.lineWidth = 0.6;
+    ctx.beginPath();
+    ctx.moveTo(sx - hw * 0.6, sy + hh * 0.5);
+    ctx.lineTo(sx + hw * 0.6, sy + hh * 1.5);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(sx - hw * 0.3, sy + hh * 1.1);
+    ctx.lineTo(sx + hw * 0.8, sy + hh * 1.9);
+    ctx.stroke();
+  }
+
   ctx.beginPath();
   ctx.moveTo(sx - hw, sy + hh);
   ctx.lineTo(sx, sy + hh * 2);
@@ -116,6 +150,99 @@ export function drawIsoFloorTile(
   ctx.closePath();
   ctx.fillStyle = right;
   ctx.fill();
+}
+
+/** デッキ段差の側面 */
+export function drawDeckRiser(
+  ctx: CanvasRenderingContext2D,
+  sx: number,
+  sy: number,
+  color: string,
+) {
+  drawIsoBlock(ctx, sx, sy, color, 1);
+}
+
+/** パターン壁（ピンク系ドット柄） */
+export function drawIsoPatternWall(
+  ctx: CanvasRenderingContext2D,
+  sx: number,
+  sy: number,
+  color: string,
+  layers: number,
+  withWindow = false,
+) {
+  drawIsoBlock(ctx, sx, sy, color, layers);
+
+  const hw = ISO_TILE_W / 2;
+  const hh = ISO_TILE_H / 2;
+  const baseY = sy + hh * 2;
+  const h = ISO_BLOCK_H * layers;
+
+  ctx.save();
+  ctx.strokeStyle = shade(color, 40);
+  ctx.lineWidth = 0.4;
+  for (let i = 0; i < 3; i++) {
+    const oy = baseY - h + 8 + i * 10;
+    ctx.beginPath();
+    ctx.moveTo(sx - hw * 0.7, oy);
+    ctx.lineTo(sx + hw * 0.7, oy + 4);
+    ctx.stroke();
+  }
+
+  if (withWindow) {
+    const wy = baseY - h + 14;
+    ctx.fillStyle = "#a8e4ff";
+    ctx.fillRect(sx - 5, wy, 10, 12);
+    ctx.strokeStyle = "#f5f0e8";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(sx - 5, wy, 10, 12);
+    ctx.beginPath();
+    ctx.moveTo(sx, wy);
+    ctx.lineTo(sx, wy + 12);
+    ctx.moveTo(sx - 5, wy + 6);
+    ctx.lineTo(sx + 5, wy + 6);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** 部屋の外枠（編集時の青い境界線） */
+export function drawRoomBoundsOutline(
+  ctx: CanvasRenderingContext2D,
+  gridW: number,
+  gridH: number,
+) {
+  const corners = [
+    gridToScreen(0.5, 0.5, gridW, gridH, 0),
+    gridToScreen(gridW - 0.5, 0.5, gridW, gridH, 0),
+    gridToScreen(gridW - 0.5, gridH - 0.5, gridW, gridH, 0),
+    gridToScreen(0.5, gridH - 0.5, gridW, gridH, 0),
+  ];
+  ctx.strokeStyle = "rgba(80, 160, 255, 0.55)";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  for (let i = 1; i < corners.length; i++) {
+    ctx.lineTo(corners[i].x, corners[i].y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+/** 明るい空背景 */
+export function drawSkyBackground(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+) {
+  const bg = ctx.createLinearGradient(0, 0, 0, height);
+  bg.addColorStop(0, "#c5ecfa");
+  bg.addColorStop(0.45, "#dff5fc");
+  bg.addColorStop(1, "#b8dce8");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
 }
 
 /** ボクセルブロック（上面+左面+右面） */

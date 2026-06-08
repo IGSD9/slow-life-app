@@ -1,15 +1,15 @@
 "use client";
 
 const WALLPAPERS = [
-  { id: "wall_default", label: "パープル", color: "#2d1b4e" },
-  { id: "wall_blue", label: "ブルー", color: "#1a3a5c" },
-  { id: "wall_pink", label: "ピンク", color: "#4a2040" },
+  { id: "wall_default", label: "ピンク", color: "#e8a8c8" },
+  { id: "wall_blue", label: "ブルー", color: "#8ab4d9" },
+  { id: "wall_pink", label: "ローズ", color: "#f0b0d0" },
 ];
 
 const FLOORS = [
-  { id: "floor_default", label: "ダークウッド", color: "#3d2b1f" },
-  { id: "floor_wood", label: "ウッド", color: "#5c3d2e" },
-  { id: "floor_tile", label: "タイル", color: "#4a4a5a" },
+  { id: "floor_default", label: "ライトウッド", color: "#c49a6c" },
+  { id: "floor_wood", label: "ウッド", color: "#b8895a" },
+  { id: "floor_tile", label: "タイル", color: "#9a9aaa" },
 ];
 
 interface RoomDecorPickerProps {
