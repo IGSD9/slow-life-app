@@ -17,6 +17,7 @@ import {
   drawIsoBlock,
   drawIsoFloorTile,
   drawNameTag,
+  CHARACTER_DISPLAY_HEIGHT,
   drawPixelCharacter,
   drawPlatformBase,
   drawRoomBoundsOutline,
@@ -280,7 +281,7 @@ export function RoomCanvas({
     ctx.fillStyle = "rgba(255,255,255,0.8)";
     ctx.font = "9px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(arrow, px, tileFootY(sy) - ISO_BLOCK_H * 4.2);
+    ctx.fillText(arrow, px, tileFootY(sy) - CHARACTER_DISPLAY_HEIGHT - 10);
 
     ctx.restore();
   }, [

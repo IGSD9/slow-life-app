@@ -467,11 +467,19 @@ export function isRoomWallCell(gridX: number, gridY: number, gridW: number): boo
   return false;
 }
 
-export {
+import {
+  CHARACTER_DISPLAY_HEIGHT,
   drawPixelCharacter,
   resolveCharacterColors,
   type PixelCharacterColors,
 } from "./pixelCharacter";
+
+export {
+  CHARACTER_DISPLAY_HEIGHT,
+  drawPixelCharacter,
+  resolveCharacterColors,
+  type PixelCharacterColors,
+};
 
 export function drawNameTag(
   ctx: CanvasRenderingContext2D,
@@ -482,7 +490,7 @@ export function drawNameTag(
   isAdmin?: boolean,
 ) {
   const footY = tileFootY(sy);
-  let labelY = footY - ISO_BLOCK_H * 3.8;
+  let labelY = footY - CHARACTER_DISPLAY_HEIGHT - 6;
   ctx.textAlign = "center";
   if (titleName) {
     ctx.fillStyle = "#f5a623";
