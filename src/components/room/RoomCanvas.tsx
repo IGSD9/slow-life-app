@@ -32,17 +32,21 @@ import {
   ISO_WALL_LAYERS,
 } from "@/lib/isometric";
 import {
-  drawDamaskOnWalls,
-  drawHousingBackground,
-  drawLoftRisers,
-  drawOutdoorCheckerPad,
+  COUCH_POS,
+  DESK_LEFT,
+  DESK_RIGHT,
+  drawFloorNeonReflections,
+  drawGamingDesks,
+  drawLoFiBackground,
+  drawLoftCouch,
+  drawLoftFrontFace,
+  drawOutdoorPad,
+  drawRainyCityWindow,
+  drawRampTile,
   drawRugTile,
-  drawStairs,
-  drawTemplateBed,
-  drawTemplateNightstand,
-  drawWallTopWindows,
+  drawWallNeonGlow,
+  isRampCell,
   isRugCell,
-  isStairCell,
   ROOM_COLORS,
 } from "@/lib/roomTemplate";
 import type { AvatarConfig } from "@/types/avatar";
@@ -84,12 +88,12 @@ const FURNITURE: Record<string, { color: string; layers: number }> = {
 
 const WALLPAPER: Record<string, string> = {
   wall_default: ROOM_COLORS.wall,
-  wall_blue: "#8ab4d9",
-  wall_pink: "#f0b0d0",
+  wall_blue: "#1a2848",
+  wall_pink: "#2a1a38",
 };
 
 /** ラグ上が初期スポーン */
-const DEFAULT_SPAWN = { gridX: 7, gridY: 7 };
+const DEFAULT_SPAWN = { gridX: 9, gridY: 9 };
 
 function getOccupiedCells(layout: RoomLayout): Set<string> {
   const cells = new Set<string>();
@@ -102,9 +106,9 @@ function isWallCell(x: number, y: number): boolean {
 }
 
 function isTemplateBlockedCell(x: number, y: number): boolean {
-  if (isStairCell(x, y)) return true;
-  if (x === 2 && y === 2) return true;
-  if (x === 5 && y === 2) return true;
+  if (x === COUCH_POS.x && y === COUCH_POS.y) return true;
+  if (x === DESK_LEFT.x && y === DESK_LEFT.y) return true;
+  if (x === DESK_RIGHT.x && y === DESK_RIGHT.y) return true;
   return false;
 }
 
@@ -176,8 +180,8 @@ export function RoomCanvas({
     ctx.save();
     ctx.scale(scaleX, scaleY);
 
-    drawHousingBackground(ctx, BW, BH);
-    drawOutdoorCheckerPad(ctx, GRID_WIDTH, GRID_HEIGHT);
+    drawLoFiBackground(ctx, BW, BH);
+    drawOutdoorPad(ctx, GRID_WIDTH, GRID_HEIGHT);
 
     const wallColor = WALLPAPER[wallpaperId] ?? ROOM_COLORS.wall;
 
@@ -186,14 +190,11 @@ export function RoomCanvas({
     const floorCells: { x: number; y: number; key: number; z: number }[] = [];
     for (let y = 1; y < GRID_HEIGHT; y++) {
       for (let x = 1; x < GRID_WIDTH - 1; x++) {
-        if (isStairCell(x, y)) continue;
         const z = floorElevation(x, y);
         floorCells.push({ x, y, key: depthKey(x, y, z), z });
       }
     }
     floorCells.sort((a, b) => a.key - b.key);
-
-    drawLoftRisers(ctx, GRID_WIDTH, GRID_HEIGHT);
 
     for (const { x, y, z } of floorCells) {
       const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT, z);
@@ -205,21 +206,25 @@ export function RoomCanvas({
         drawRugTile(ctx, sx, sy);
       } else if (isLoftCell(x, y)) {
         drawIsoFloorTile(ctx, sx, sy, ROOM_COLORS.loftFloor, isHighlight || isPlayer, false);
+      } else if (isRampCell(x, y)) {
+        const rampIdx = x + y;
+        drawRampTile(ctx, sx, sy, rampIdx);
       } else {
         const checker = (x + y) % 2 === 0 ? ROOM_COLORS.floorA : ROOM_COLORS.floorB;
-        drawIsoFloorTile(ctx, sx, sy, checker, isHighlight || isPlayer, true);
+        drawIsoFloorTile(ctx, sx, sy, checker, isHighlight || isPlayer, false);
       }
     }
 
-    drawStairs(ctx, GRID_WIDTH, GRID_HEIGHT);
+    drawLoftFrontFace(ctx, GRID_WIDTH, GRID_HEIGHT);
 
     drawContinuousBackWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
     drawContinuousLeftWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
-    drawDamaskOnWalls(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS, wallColor);
-    drawWallTopWindows(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS);
+    drawRainyCityWindow(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS);
+    drawWallNeonGlow(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS);
 
-    drawTemplateBed(ctx, GRID_WIDTH, GRID_HEIGHT);
-    drawTemplateNightstand(ctx, GRID_WIDTH, GRID_HEIGHT);
+    drawLoftCouch(ctx, GRID_WIDTH, GRID_HEIGHT);
+    drawGamingDesks(ctx, GRID_WIDTH, GRID_HEIGHT);
+    drawFloorNeonReflections(ctx, GRID_WIDTH, GRID_HEIGHT);
 
     if (isEditing) {
       drawRoomBoundsOutline(ctx, GRID_WIDTH, GRID_HEIGHT);
@@ -432,7 +437,7 @@ export function RoomCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden rounded-xl border-2 border-[#7c6a8a]/40 shadow-lg shadow-black/30"
+      className="relative w-full overflow-hidden rounded-xl border-2 border-[#2a3458]/60 shadow-lg shadow-black/50"
     >
       <canvas
         ref={canvasRef}

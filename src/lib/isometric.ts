@@ -26,9 +26,9 @@ export function isDeckCell(gridX: number, gridY: number): boolean {
   return isLoftCell(gridX, gridY);
 }
 
-/** タイル上面の立ち位置（足元） */
+/** タイル上面の立ち位置（足元＝タイル手前の接地点） */
 export function tileFootY(sy: number): number {
-  return sy + ISO_TILE_H / 2;
+  return sy + ISO_TILE_H;
 }
 
 export interface IsoPoint {

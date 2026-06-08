@@ -313,9 +313,9 @@ export function drawPixelCharacter(
   ctx.save();
   ctx.imageSmoothingEnabled = false;
 
-  ctx.fillStyle = "rgba(0,0,0,0.2)";
+  ctx.fillStyle = "rgba(0,0,0,0.35)";
   ctx.beginPath();
-  ctx.ellipse(sx, footY + 2, 12, 4, 0, 0, Math.PI * 2);
+  ctx.ellipse(sx, footY + 1, 14, 5, 0, 0, Math.PI * 2);
   ctx.fill();
 
   const draw =
