@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth/getUser";
 import { trackDailyLogin } from "@/lib/missions";
+import { syncMailboxOnLogin } from "@/lib/actions/mailbox";
 
 export async function POST() {
   const authUser = await getAuthUser();
@@ -9,5 +10,9 @@ export async function POST() {
   }
 
   await trackDailyLogin(authUser.id);
-  return NextResponse.json({ success: true });
+  const mailResult = await syncMailboxOnLogin(authUser.id, authUser.email);
+  return NextResponse.json({
+    success: true,
+    dailyMailDelivered: mailResult.delivered,
+  });
 }

@@ -23,6 +23,8 @@ model User {
   transactions        Transaction[]
   levelRewards        LevelRewardClaim[]
   userTitles          UserTitle[]
+  mailMessages        MailMessage[]
+  dailyRewardLogs     DailyRewardLog[]
 }
 
 model Profile {
@@ -76,6 +78,7 @@ model ItemMaster {
   inventoryItems    InventoryItem[]
   levelRewards      LevelReward[]
   battlePassRewards BattlePassReward[]
+  dailyRewardConfigs DailyRewardConfig[]
 }
 
 model InventoryItem {
@@ -293,4 +296,55 @@ model TradeSession {
   status        TradeStatus @default(PENDING)
   createdAt     DateTime    @default(now())
   completedAt   DateTime?
+}
+
+enum MailType {
+  DAILY_REWARD
+  SYSTEM
+}
+
+/** メールボックス（デイリー報酬など） */
+model MailMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  subject   String
+  body      String?
+  mailType  MailType @default(DAILY_REWARD)
+  payload   Json     @default("{}")
+  isRead    Boolean  @default(false)
+  isClaimed Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isClaimed])
+  @@index([userId, createdAt])
+}
+
+/** デイリー報酬の内容（管理・今後拡張用） */
+model DailyRewardConfig {
+  id       String  @id
+  label    String
+  itemId   String?
+  itemQty  Int     @default(1)
+  coins    Int     @default(0)
+  gems     Int     @default(0)
+  exp      Int     @default(0)
+  isActive Boolean @default(true)
+  priority Int     @default(0)
+
+  item ItemMaster? @relation(fields: [itemId], references: [id])
+}
+
+/** ユーザーごとのデイリー配布記録 */
+model DailyRewardLog {
+  id        String   @id @default(cuid())
+  userId    String
+  dateKey   String
+  mailId    String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dateKey])
 }

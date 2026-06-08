@@ -278,6 +278,25 @@ async function main() {
     });
   }
 
+  const dailyRewards = [
+    { id: "daily_coins", label: "デイリーコイン", coins: 100, priority: 1 },
+    {
+      id: "daily_stamp",
+      label: "デイリースタンプ",
+      itemId: "stamp_heart_01",
+      itemQty: 1,
+      priority: 2,
+    },
+  ];
+
+  for (const reward of dailyRewards) {
+    await prisma.dailyRewardConfig.upsert({
+      where: { id: reward.id },
+      create: { ...reward, isActive: true },
+      update: reward,
+    });
+  }
+
   console.log("Seed completed.");
 }
 
