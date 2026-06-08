@@ -299,7 +299,7 @@ export function RoomCanvas({
     for (const stamp of stamps) {
       const z = floorElevation(stamp.gridX, stamp.gridY);
       const { x: sx, y: sy } = gridToScreen(stamp.gridX, stamp.gridY, GRID_WIDTH, GRID_HEIGHT, z);
-      ctx.fillStyle = "#e94560";
+      ctx.fillStyle = "#ff6b9d";
       ctx.font = "14px monospace";
       ctx.textAlign = "center";
       ctx.fillText("♥", sx, sy - ISO_BLOCK_H * 2);
@@ -310,7 +310,7 @@ export function RoomCanvas({
       playerPos.gridY,
       displayName,
       "#ffcba4",
-      "#e94560",
+      "#ff6b9d",
       titleName,
       isAdmin,
     );
@@ -477,7 +477,7 @@ export function RoomCanvas({
             <button
               key={dir}
               onClick={() => movePlayer(dir)}
-              className="w-10 h-10 bg-[#1a1a2e]/90 text-white rounded border border-[#e94560]/30 text-sm backdrop-blur"
+              className="w-10 h-10 bg-white/95 text-[#4a4a6a] rounded border border-[#ff6b9d]/30 text-sm backdrop-blur"
             >
               {{ up: "↑", down: "↓", left: "←", right: "→" }[dir]}
             </button>

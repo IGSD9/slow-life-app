@@ -62,16 +62,16 @@ export function CharacterDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-[#ff6b9d]/25 backdrop-blur-sm p-0 sm:p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md max-h-[95vh] overflow-y-auto bg-[#0f0f1a] rounded-t-2xl sm:rounded-2xl border border-[#e94560]/30 shadow-2xl relative"
+        className="w-full max-w-md max-h-[95vh] overflow-y-auto bg-white rounded-t-2xl sm:rounded-2xl border border-[#ff6b9d]/30 shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-black/50 text-white hover:bg-black/70"
+          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/80 text-[#4a4a6a] hover:bg-white shadow-sm"
           aria-label="閉じる"
         >
           <X size={18} />
@@ -89,7 +89,7 @@ export function CharacterDetailModal({
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
-              <Sparkles className="text-[#e94560]" size={32} />
+              <Sparkles className="text-[#ff6b9d]" size={32} />
               <p className="text-sm text-[#2d2d44] font-medium">
                 {isOwnProfile
                   ? "高画質イラストを設定すると\nここに表示されます"
@@ -117,7 +117,7 @@ export function CharacterDetailModal({
               type="button"
               onClick={onPortraitPick}
               disabled={uploadingPortrait}
-              className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 text-white text-xs hover:bg-black/80 transition-colors disabled:opacity-50"
+              className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 text-[#4a4a6a] text-xs hover:bg-white shadow-md transition-colors disabled:opacity-50"
             >
               <Camera size={14} />
               {uploadingPortrait ? "保存中..." : "高画質イラストを変更"}
@@ -131,7 +131,7 @@ export function CharacterDetailModal({
             <h2 className="text-xl font-bold flex items-center gap-2">
               {data.displayName}
               {data.isAdmin && (
-                <span className="text-xs text-[#e94560]">[管理者]</span>
+                <span className="text-xs text-[#ff6b9d]">[管理者]</span>
               )}
             </h2>
             {tName && <p className="text-sm text-yellow-400 mt-0.5">{tName}</p>}

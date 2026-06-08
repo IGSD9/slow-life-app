@@ -21,7 +21,7 @@ interface StoreData {
   items: StoreItem[];
 }
 
-const RARITY_COLORS = ["", "text-gray-400", "text-blue-400", "text-yellow-400"];
+const RARITY_COLORS = ["", "text-[#9494b0]", "text-blue-400", "text-yellow-400"];
 
 export default function StorePage() {
   const [data, setData] = useState<StoreData | null>(null);
@@ -59,48 +59,48 @@ export default function StorePage() {
   if (!data) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-gray-400">読み込み中...</p>
+        <p className="text-[#9494b0]">読み込み中...</p>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full pb-24">
-      <h1 className="text-lg font-bold text-[#e94560] flex items-center gap-2">
+      <h1 className="text-lg font-bold text-[#ff6b9d] flex items-center gap-2">
         <ShoppingBag size={20} />
         ストア
       </h1>
 
-      <div className="flex gap-4 justify-center bg-[#0f0f1a] rounded-xl border border-[#e94560]/20 p-4">
+      <div className="flex gap-4 justify-center bg-white rounded-xl border border-[#ff6b9d]/20 p-4">
         <div className="text-center">
-          <p className="text-xs text-gray-400">コイン</p>
+          <p className="text-xs text-[#9494b0]">コイン</p>
           <p className="text-lg font-bold text-yellow-400">{data.coins}</p>
         </div>
         <div className="text-center">
-          <p className="text-xs text-gray-400">ジェム</p>
+          <p className="text-xs text-[#9494b0]">ジェム</p>
           <p className="text-lg font-bold text-blue-400">{data.gems}</p>
         </div>
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-bold text-gray-300">ジェム購入（Stripe）</h2>
+        <h2 className="text-sm font-bold text-[#6a6a88]">ジェム購入（Stripe）</h2>
         <GemPacks onMessage={setMessage} onSuccess={fetchData} />
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-bold text-gray-300">アイテム</h2>
+        <h2 className="text-sm font-bold text-[#6a6a88]">アイテム</h2>
         {data.items.map((item) => (
           <div
             key={item.id}
-            className="bg-[#0f0f1a] rounded-lg border border-[#e94560]/20 p-3"
+            className="bg-white rounded-lg border border-[#ff6b9d]/20 p-3"
           >
             <div className="flex justify-between items-start mb-2">
               <div>
                 <p className={`text-sm font-bold ${RARITY_COLORS[item.rarity] ?? ""}`}>
                   {item.name}
-                  {item.owned && <span className="text-[10px] text-gray-500 ml-1">所持済</span>}
+                  {item.owned && <span className="text-[10px] text-[#8888a8] ml-1">所持済</span>}
                 </p>
-                <p className="text-[10px] text-gray-400">{item.description}</p>
+                <p className="text-[10px] text-[#9494b0]">{item.description}</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -130,7 +130,7 @@ export default function StorePage() {
         ))}
       </div>
 
-      {message && <p className="text-xs text-center text-[#e94560]">{message}</p>}
+      {message && <p className="text-xs text-center text-[#ff6b9d]">{message}</p>}
     </div>
   );
 }
@@ -176,10 +176,10 @@ function GemPacks({
         <button
           key={p.id}
           onClick={() => buy(p.id)}
-          className="bg-[#0f0f1a] rounded-lg border border-blue-500/30 p-3 text-center hover:border-blue-400"
+          className="bg-white rounded-lg border border-blue-500/30 p-3 text-center hover:border-blue-400"
         >
           <p className="text-lg font-bold text-blue-400">{p.gems}💎</p>
-          <p className="text-[10px] text-gray-400">¥{p.priceYen}</p>
+          <p className="text-[10px] text-[#9494b0]">¥{p.priceYen}</p>
         </button>
       ))}
     </div>

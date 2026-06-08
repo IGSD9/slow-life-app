@@ -36,14 +36,14 @@ export function InstallPrompt() {
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-40 max-w-lg mx-auto">
-      <div className="bg-[#1a1a2e] border border-[#e94560]/40 rounded-xl p-3 flex items-center gap-3 shadow-lg">
-        <Download size={20} className="text-[#e94560] shrink-0" />
+      <div className="bg-[#fff0f6] border border-[#ff6b9d]/40 rounded-xl p-3 flex items-center gap-3 shadow-lg">
+        <Download size={20} className="text-[#ff6b9d] shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold">ホーム画面に追加</p>
-          <p className="text-[10px] text-gray-400">アプリのように快適にプレイ</p>
+          <p className="text-[10px] text-[#9494b0]">アプリのように快適にプレイ</p>
         </div>
         <Button size="sm" onClick={install}>追加</Button>
-        <button onClick={() => setDismissed(true)} className="text-gray-500">
+        <button onClick={() => setDismissed(true)} className="text-[#8888a8]">
           <X size={16} />
         </button>
       </div>

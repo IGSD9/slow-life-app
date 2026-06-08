@@ -31,8 +31,8 @@ export function BottomNav() {
   }, [fetchBadge, pathname]);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f0f1a]/95 backdrop-blur border-t border-[#e94560]/20 safe-area-bottom">
-      <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-1">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-[#ffd6e8] safe-area-bottom shadow-[0_-4px_20px_rgba(255,107,157,0.1)]">
+      <div className="flex justify-around items-center h-16 max-w-3xl mx-auto px-1">
         {navItems.map(({ href, label, icon: Icon, badge }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           const showBadge = badge && unclaimedMails > 0;
@@ -41,12 +41,14 @@ export function BottomNav() {
               key={href}
               href={href}
               className={`relative flex flex-col items-center gap-0.5 px-1.5 py-1 transition-colors ${
-                active ? "text-[#e94560]" : "text-gray-400 hover:text-gray-200"
+                active
+                  ? "text-[#ff6b9d]"
+                  : "text-[#9494b0] hover:text-[#ff6b9d]"
               }`}
             >
               <Icon size={18} />
               {showBadge && (
-                <span className="absolute top-0 right-0 min-w-[14px] h-[14px] px-0.5 rounded-full bg-[#e94560] text-[8px] font-bold text-white flex items-center justify-center">
+                <span className="absolute top-0 right-0 min-w-[14px] h-[14px] px-0.5 rounded-full bg-[#ff6b9d] text-[8px] font-bold text-white flex items-center justify-center">
                   {unclaimedMails > 9 ? "9+" : unclaimedMails}
                 </span>
               )}

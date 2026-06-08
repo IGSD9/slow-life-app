@@ -20,37 +20,37 @@ interface RoomDecorPickerProps {
 
 export function RoomDecorPicker({ wallpaperId, floorId, onChange }: RoomDecorPickerProps) {
   return (
-    <div className="bg-[#0f0f1a] rounded-lg border border-[#e94560]/20 p-3 space-y-3">
+    <div className="bg-white rounded-lg border border-[#ff6b9d]/20 p-3 space-y-3">
       <div>
-        <p className="text-xs text-gray-400 mb-2">壁紙</p>
+        <p className="text-xs text-[#9494b0] mb-2">壁紙</p>
         <div className="flex gap-2">
           {WALLPAPERS.map((w) => (
             <button
               key={w.id}
               onClick={() => onChange(w.id, floorId)}
               className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${
-                wallpaperId === w.id ? "border-[#e94560]" : "border-gray-700"
+                wallpaperId === w.id ? "border-[#ff6b9d]" : "border-[#ffd6e8]"
               }`}
             >
               <div className="w-10 h-6 rounded" style={{ backgroundColor: w.color }} />
-              <span className="text-[9px] text-gray-400">{w.label}</span>
+              <span className="text-[9px] text-[#9494b0]">{w.label}</span>
             </button>
           ))}
         </div>
       </div>
       <div>
-        <p className="text-xs text-gray-400 mb-2">床</p>
+        <p className="text-xs text-[#9494b0] mb-2">床</p>
         <div className="flex gap-2">
           {FLOORS.map((f) => (
             <button
               key={f.id}
               onClick={() => onChange(wallpaperId, f.id)}
               className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${
-                floorId === f.id ? "border-[#e94560]" : "border-gray-700"
+                floorId === f.id ? "border-[#ff6b9d]" : "border-[#ffd6e8]"
               }`}
             >
               <div className="w-10 h-6 rounded" style={{ backgroundColor: f.color }} />
-              <span className="text-[9px] text-gray-400">{f.label}</span>
+              <span className="text-[9px] text-[#9494b0]">{f.label}</span>
             </button>
           ))}
         </div>

@@ -123,7 +123,7 @@ export function FightingGame({ onGameOver }: FightingGameProps) {
         ctx.fillText(label, f.x, H - 98);
       };
 
-      drawFighter(s.player, "#e94560", "YOU");
+      drawFighter(s.player, "#ff6b9d", "YOU");
       drawFighter(s.cpu, "#4a90d9", "CPU");
 
       animId = requestAnimationFrame(loop);
@@ -153,11 +153,11 @@ export function FightingGame({ onGameOver }: FightingGameProps) {
         ref={canvasRef}
         width={W}
         height={H}
-        className="border-2 border-[#e94560]/40 rounded w-full max-w-[320px]"
+        className="border-2 border-[#ff6b9d]/40 rounded w-full max-w-[320px]"
         style={{ imageRendering: "pixelated" }}
       />
       {gameOver && (
-        <p className="text-lg font-bold text-[#e94560]">
+        <p className="text-lg font-bold text-[#ff6b9d]">
           {winner === "player" ? "勝利！" : "敗北..."}
         </p>
       )}
@@ -166,7 +166,7 @@ export function FightingGame({ onGameOver }: FightingGameProps) {
         <Button size="sm" variant="secondary" onClick={() => attack("player")}>攻撃</Button>
         <Button size="sm" variant="secondary" onClick={() => move("player", 5)}>→</Button>
       </div>
-      <p className="text-[10px] text-gray-500">A/D: 移動 F/Space: 攻撃（CPU対戦）</p>
+      <p className="text-[10px] text-[#8888a8]">A/D: 移動 F/Space: 攻撃（CPU対戦）</p>
     </div>
   );
 }

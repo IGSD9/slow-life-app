@@ -65,7 +65,7 @@ export function SocialActions({
         </Button>
       )}
       {message && (
-        <p className="text-[10px] text-[#e94560] absolute -bottom-5 left-0 right-0 text-center">
+        <p className="text-[10px] text-[#ff6b9d] absolute -bottom-5 left-0 right-0 text-center">
           {message}
         </p>
       )}

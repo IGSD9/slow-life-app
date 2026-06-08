@@ -17,7 +17,7 @@ interface InventoryItem {
 }
 
 const RARITY_LABELS = ["", "通常", "レア", "限定"];
-const RARITY_COLORS = ["", "text-gray-400", "text-blue-400", "text-yellow-400"];
+const RARITY_COLORS = ["", "text-[#9494b0]", "text-blue-400", "text-yellow-400"];
 
 export default function InventoryPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);
@@ -48,7 +48,7 @@ export default function InventoryPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full">
-      <h1 className="text-lg font-bold text-[#e94560]">持ち物</h1>
+      <h1 className="text-lg font-bold text-[#ff6b9d]">持ち物</h1>
 
       <div className="flex gap-1 overflow-x-auto">
         {categories.map(({ key, label }) => (
@@ -57,8 +57,8 @@ export default function InventoryPage() {
             onClick={() => setFilter(key)}
             className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap ${
               filter === key
-                ? "bg-[#e94560] text-white"
-                : "bg-[#1a1a2e] text-gray-400"
+                ? "bg-[#ff6b9d] text-white"
+                : "bg-[#fff0f6] text-[#9494b0]"
             }`}
           >
             {label}
@@ -67,15 +67,15 @@ export default function InventoryPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-center text-gray-400 py-8">アイテムがありません</p>
+        <p className="text-center text-[#9494b0] py-8">アイテムがありません</p>
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {filtered.map((inv) => (
             <div
               key={inv.id}
-              className="bg-[#0f0f1a] rounded-lg border border-[#e94560]/20 p-3"
+              className="bg-white rounded-lg border border-[#ff6b9d]/20 p-3"
             >
-              <div className="w-full h-16 bg-[#1a1a2e] rounded flex items-center justify-center text-lg mb-2">
+              <div className="w-full h-16 bg-[#fff0f6] rounded flex items-center justify-center text-lg mb-2">
                 {inv.item.name.slice(0, 2)}
               </div>
               <p className="text-sm font-bold truncate">{inv.item.name}</p>
@@ -86,7 +86,7 @@ export default function InventoryPage() {
                 <span className="text-[10px] text-green-400">配置中</span>
               )}
               {inv.quantity > 1 && (
-                <span className="text-[10px] text-gray-400">×{inv.quantity}</span>
+                <span className="text-[10px] text-[#9494b0]">×{inv.quantity}</span>
               )}
             </div>
           ))}

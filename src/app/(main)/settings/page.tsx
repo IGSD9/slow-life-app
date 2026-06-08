@@ -65,7 +65,7 @@ export default function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-gray-400">読み込み中...</p>
+        <p className="text-[#9494b0]">読み込み中...</p>
       </div>
     );
   }
@@ -73,41 +73,41 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full pb-24">
       <div className="flex items-center gap-2">
-        <Link href="/profile" className="text-gray-400 hover:text-white">
+        <Link href="/profile" className="text-[#9494b0] hover:text-[#ff6b9d]">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-lg font-bold text-[#e94560] flex items-center gap-2">
+        <h1 className="text-lg font-bold text-[#ff6b9d] flex items-center gap-2">
           <Settings size={20} />
           個人設定
         </h1>
       </div>
 
-      <section className="bg-[#0f0f1a] rounded-xl border border-[#e94560]/20 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm text-gray-300">
-          <Mail size={16} className="text-[#e94560]" />
+      <section className="bg-white rounded-xl border border-[#ff6b9d]/20 p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm text-[#6a6a88]">
+          <Mail size={16} className="text-[#ff6b9d]" />
           <span className="font-bold">登録メールアドレス</span>
         </div>
         <p className="text-sm text-white break-all">{email}</p>
-        <p className="text-[10px] text-gray-500">
+        <p className="text-[10px] text-[#8888a8]">
           アカウントの識別に使用します。部屋やプロフィールには表示されません。
         </p>
       </section>
 
-      <section className="bg-[#0f0f1a] rounded-xl border border-[#e94560]/20 p-4">
-        <h2 className="text-sm font-bold text-gray-300 mb-3">メールアドレスを変更</h2>
+      <section className="bg-white rounded-xl border border-[#ff6b9d]/20 p-4">
+        <h2 className="text-sm font-bold text-[#6a6a88] mb-3">メールアドレスを変更</h2>
         <form onSubmit={handleEmailChange} className="space-y-3">
           <div>
-            <label className="text-xs text-gray-400 block mb-1">新しいメールアドレス</label>
+            <label className="text-xs text-[#9494b0] block mb-1">新しいメールアドレス</label>
             <input
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-[#e94560]/20 text-white text-sm outline-none focus:border-[#e94560]"
+              className="w-full px-3 py-2 rounded-lg bg-[#fff0f6] border border-[#ffd6e8] text-[#4a4a6a] text-sm outline-none focus:border-[#ff6b9d]"
             />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">現在のパスワード（確認用）</label>
+            <label className="text-xs text-[#9494b0] block mb-1">現在のパスワード（確認用）</label>
             <PasswordInput value={password} onChange={setPassword} required />
           </div>
           {error && <p className="text-xs text-red-400">{error}</p>}

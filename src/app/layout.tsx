@@ -21,13 +21,13 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "スローライフ",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#e94560",
+  themeColor: "#ff6b9d",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -43,7 +43,7 @@ export default function RootLayout({
       lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#0a0a14]">{children}</body>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

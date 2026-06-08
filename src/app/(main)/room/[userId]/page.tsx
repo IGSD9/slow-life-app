@@ -94,7 +94,7 @@ export default function VisitRoomPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-gray-400">読み込み中...</p>
+        <p className="text-[#9494b0]">読み込み中...</p>
       </div>
     );
   }
@@ -123,11 +123,11 @@ export default function VisitRoomPage() {
           </Button>
         </Link>
         <div className="flex-1">
-          <p className="text-xs text-gray-400">お邪魔中</p>
+          <p className="text-xs text-[#9494b0]">お邪魔中</p>
           <h1 className="font-bold text-sm flex items-center gap-1.5">
             {hostProfile?.displayName ?? "???"} の部屋
             {hostProfile?.isAdmin && (
-              <span className="text-[10px] text-[#e94560]">[管理者]</span>
+              <span className="text-[10px] text-[#ff6b9d]">[管理者]</span>
             )}
           </h1>
         </div>
@@ -174,7 +174,7 @@ export default function VisitRoomPage() {
       </div>
 
       {remotePlayers.length > 0 && (
-        <p className="text-[10px] text-gray-500 text-center">
+        <p className="text-[10px] text-[#8888a8] text-center">
           ルーム内: {remotePlayers.map((p) => p.displayName).join(", ")}
         </p>
       )}

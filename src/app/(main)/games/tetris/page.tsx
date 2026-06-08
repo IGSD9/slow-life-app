@@ -36,7 +36,7 @@ export default function TetrisPage() {
             <ArrowLeft size={16} />
           </Button>
         </Link>
-        <h1 className="text-lg font-bold text-[#e94560]">テトリス</h1>
+        <h1 className="text-lg font-bold text-[#ff6b9d]">テトリス</h1>
       </div>
       <TetrisGame key={key} onGameOver={handleGameOver} />
     </div>

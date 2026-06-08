@@ -133,13 +133,13 @@ export default function FriendsPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full pb-24">
-      <h1 className="text-lg font-bold text-[#e94560] flex items-center gap-2">
+      <h1 className="text-lg font-bold text-[#ff6b9d] flex items-center gap-2">
         <Users size={20} />
         フレンド
       </h1>
 
-      <div className="bg-[#0f0f1a] rounded-xl border border-[#e94560]/20 p-4 space-y-3">
-        <p className="text-xs text-gray-400 flex items-center gap-1">
+      <div className="bg-white rounded-xl border border-[#ff6b9d]/20 p-4 space-y-3">
+        <p className="text-xs text-[#9494b0] flex items-center gap-1">
           <UserPlus size={14} />
           フレンド申請（相手のメールアドレス）
         </p>
@@ -148,22 +148,22 @@ export default function FriendsPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="friend@example.com"
-          className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-[#e94560]/20 text-white text-sm outline-none focus:border-[#e94560]"
+          className="w-full px-3 py-2 rounded-lg bg-[#fff0f6] border border-[#ffd6e8] text-[#4a4a6a] text-sm outline-none focus:border-[#ff6b9d]"
         />
         <Button size="sm" onClick={sendRequest} disabled={loading} className="w-full">
           申請を送る
         </Button>
-        {message && <p className="text-xs text-center text-[#e94560]">{message}</p>}
+        {message && <p className="text-xs text-center text-[#ff6b9d]">{message}</p>}
       </div>
 
       {data && data.pendingReceived.length > 0 && (
         <section>
-          <h2 className="text-sm font-bold text-gray-300 mb-2">届いた申請</h2>
+          <h2 className="text-sm font-bold text-[#6a6a88] mb-2">届いた申請</h2>
           <div className="space-y-2">
             {data.pendingReceived.map((r) => (
               <div
                 key={r.friendshipId}
-                className="flex items-center justify-between bg-[#0f0f1a] rounded-lg border border-[#e94560]/20 p-3"
+                className="flex items-center justify-between bg-white rounded-lg border border-[#ff6b9d]/20 p-3"
               >
                 <div>
                   <p className="text-sm font-bold">{r.displayName}</p>
@@ -188,14 +188,14 @@ export default function FriendsPage() {
 
       {data && data.pendingSent.length > 0 && (
         <section>
-          <h2 className="text-sm font-bold text-gray-300 mb-2">送信済み申請</h2>
+          <h2 className="text-sm font-bold text-[#6a6a88] mb-2">送信済み申請</h2>
           <div className="space-y-2">
             {data.pendingSent.map((s) => (
               <div
                 key={s.friendshipId}
-                className="bg-[#0f0f1a] rounded-lg border border-gray-700 p-3"
+                className="bg-white rounded-lg border border-[#ffd6e8] p-3"
               >
-                <p className="text-sm text-gray-400">{s.displayName} — 承認待ち</p>
+                <p className="text-sm text-[#9494b0]">{s.displayName} — 承認待ち</p>
               </div>
             ))}
           </div>
@@ -203,17 +203,17 @@ export default function FriendsPage() {
       )}
 
       <section>
-        <h2 className="text-sm font-bold text-gray-300 mb-2">
+        <h2 className="text-sm font-bold text-[#6a6a88] mb-2">
           フレンド一覧 ({data?.friends.length ?? 0})
         </h2>
         {!data || data.friends.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-6">フレンドがいません</p>
+          <p className="text-sm text-[#8888a8] text-center py-6">フレンドがいません</p>
         ) : (
           <div className="space-y-2">
             {data.friends.map((f) => (
               <div
                 key={f.friendshipId}
-                className="flex items-center justify-between bg-[#0f0f1a] rounded-lg border border-[#e94560]/20 p-3"
+                className="flex items-center justify-between bg-white rounded-lg border border-[#ff6b9d]/20 p-3"
               >
                 <div className="flex items-center gap-2">
                   <Circle
@@ -231,10 +231,10 @@ export default function FriendsPage() {
                     <p className="text-sm font-bold flex items-center gap-1">
                       {f.displayName}
                       {f.isAdmin && (
-                        <span className="text-[9px] text-[#e94560]">[管理者]</span>
+                        <span className="text-[9px] text-[#ff6b9d]">[管理者]</span>
                       )}
                     </p>
-                    <p className="text-[10px] text-gray-500">
+                    <p className="text-[10px] text-[#8888a8]">
                       Lv.{f.level} · 親密度 {f.affinity}
                       {f.title && ` · ${f.title}`}
                     </p>
@@ -249,7 +249,7 @@ export default function FriendsPage() {
                   {f.isMarried ? (
                     <span className="text-[10px] text-pink-400">💍 結婚中</span>
                   ) : f.marriageProposalFrom === data?.me.id ? (
-                    <span className="text-[10px] text-gray-400">プロポーズ送信済</span>
+                    <span className="text-[10px] text-[#9494b0]">プロポーズ送信済</span>
                   ) : f.marriageProposalFrom === f.userId ? (
                     <div className="flex gap-1">
                       <Button size="sm" onClick={() => marriageAction("accept", f.userId)}>

@@ -72,7 +72,7 @@ export default function MailboxPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-gray-400">読み込み中...</p>
+        <p className="text-[#9494b0]">読み込み中...</p>
       </div>
     );
   }
@@ -80,7 +80,7 @@ export default function MailboxPage() {
   return (
     <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full pb-24">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-[#e94560] flex items-center gap-2">
+        <h1 className="text-lg font-bold text-[#ff6b9d] flex items-center gap-2">
           <Mail size={20} />
           メールボックス
         </h1>
@@ -93,11 +93,11 @@ export default function MailboxPage() {
       </div>
 
       {message && (
-        <p className="text-xs text-center text-[#e94560]">{message}</p>
+        <p className="text-xs text-center text-[#ff6b9d]">{message}</p>
       )}
 
       {mails.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-[#8888a8]">
           <Mail size={32} className="mx-auto mb-2 opacity-40" />
           <p className="text-sm">メールはありません</p>
           <p className="text-[10px] mt-1">毎日ログインするとデイリー報酬が届きます</p>
@@ -111,10 +111,10 @@ export default function MailboxPage() {
                 key={mail.id}
                 className={`rounded-xl border p-4 transition-colors ${
                   mail.isClaimed
-                    ? "bg-[#0f0f1a]/50 border-gray-700/50 opacity-70"
+                    ? "bg-white/50 border-[#ffd6e8]/50 opacity-70"
                     : mail.isRead
-                      ? "bg-[#0f0f1a] border-[#e94560]/20"
-                      : "bg-[#0f0f1a] border-[#e94560]/40 shadow-sm shadow-[#e94560]/10"
+                      ? "bg-white border-[#ff6b9d]/20"
+                      : "bg-white border-[#ff6b9d]/40 shadow-sm shadow-[#ff6b9d]/10"
                 }`}
                 onClick={() => !mail.isRead && markRead(mail.id)}
               >
@@ -122,12 +122,12 @@ export default function MailboxPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       {!mail.isRead && !mail.isClaimed && (
-                        <span className="w-2 h-2 rounded-full bg-[#e94560] shrink-0" />
+                        <span className="w-2 h-2 rounded-full bg-[#ff6b9d] shrink-0" />
                       )}
                       <p className="text-sm font-bold truncate">{mail.subject}</p>
                     </div>
                     {mail.body && (
-                      <p className="text-[10px] text-gray-400 mt-1">{mail.body}</p>
+                      <p className="text-[10px] text-[#9494b0] mt-1">{mail.body}</p>
                     )}
                     <p className="text-xs text-yellow-400/90 mt-2">{summary}</p>
                     <p className="text-[10px] text-gray-600 mt-1">
@@ -148,7 +148,7 @@ export default function MailboxPage() {
                     </Button>
                   )}
                   {mail.isClaimed && (
-                    <span className="text-[10px] text-gray-500 shrink-0">受取済</span>
+                    <span className="text-[10px] text-[#8888a8] shrink-0">受取済</span>
                   )}
                 </div>
               </div>

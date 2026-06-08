@@ -130,13 +130,13 @@ export function TradePanel({ hostUserId, hostName, onTradeProposed }: TradePanel
   }
 
   return (
-    <div className="bg-[#0f0f1a] rounded-xl border border-[#e94560]/20 p-4 space-y-3">
+    <div className="bg-white rounded-xl border border-[#ff6b9d]/20 p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-[#e94560] flex items-center gap-1">
+        <h3 className="text-sm font-bold text-[#ff6b9d] flex items-center gap-1">
           <ArrowLeftRight size={14} />
           {hostName} と交換
         </h3>
-        <button onClick={() => setOpen(false)} className="text-gray-500 hover:text-white">
+        <button onClick={() => setOpen(false)} className="text-[#8888a8] hover:text-[#ff6b9d]">
           <X size={16} />
         </button>
       </div>
@@ -144,14 +144,14 @@ export function TradePanel({ hostUserId, hostName, onTradeProposed }: TradePanel
       {pending.length > 0 && (
         <div className="space-y-2">
           {pending.map((t) => (
-            <div key={t.id} className="bg-[#1a1a2e] rounded-lg p-3 text-xs">
+            <div key={t.id} className="bg-[#fff0f6] rounded-lg p-3 text-xs">
               <p className="font-bold mb-1">
                 {t.isProposer ? "送信した申請" : `${t.proposerName} からの申請`}
               </p>
-              <p className="text-gray-400">
+              <p className="text-[#9494b0]">
                 提供: {t.proposerItemNames.join(", ") || "なし"}
               </p>
-              <p className="text-gray-400">
+              <p className="text-[#9494b0]">
                 希望: {t.receiverItemNames.join(", ") || "なし"}
               </p>
               <div className="flex gap-2 mt-2">
@@ -170,10 +170,10 @@ export function TradePanel({ hostUserId, hostName, onTradeProposed }: TradePanel
       )}
 
       <div>
-        <p className="text-xs text-gray-400 mb-1">あなたが渡すアイテム</p>
+        <p className="text-xs text-[#9494b0] mb-1">あなたが渡すアイテム</p>
         <div className="flex flex-wrap gap-1">
           {myItems.length === 0 ? (
-            <p className="text-xs text-gray-500">交換可能なアイテムなし</p>
+            <p className="text-xs text-[#8888a8]">交換可能なアイテムなし</p>
           ) : (
             myItems.map((inv) => (
               <button
@@ -181,8 +181,8 @@ export function TradePanel({ hostUserId, hostName, onTradeProposed }: TradePanel
                 onClick={() => toggle(mySelected, inv.id, setMySelected)}
                 className={`px-2 py-1 rounded text-[10px] border ${
                   mySelected.has(inv.id)
-                    ? "border-[#e94560] bg-[#e94560]/20 text-white"
-                    : "border-gray-700 text-gray-400"
+                    ? "border-[#ff6b9d] bg-[#ff6b9d]/20 text-white"
+                    : "border-[#ffd6e8] text-[#9494b0]"
                 }`}
               >
                 {inv.item.name}
@@ -193,10 +193,10 @@ export function TradePanel({ hostUserId, hostName, onTradeProposed }: TradePanel
       </div>
 
       <div>
-        <p className="text-xs text-gray-400 mb-1">相手から欲しいアイテム</p>
+        <p className="text-xs text-[#9494b0] mb-1">相手から欲しいアイテム</p>
         <div className="flex flex-wrap gap-1">
           {hostItems.length === 0 ? (
-            <p className="text-xs text-gray-500">相手に交換可能なアイテムなし</p>
+            <p className="text-xs text-[#8888a8]">相手に交換可能なアイテムなし</p>
           ) : (
             hostItems.map((inv) => (
               <button
@@ -204,8 +204,8 @@ export function TradePanel({ hostUserId, hostName, onTradeProposed }: TradePanel
                 onClick={() => toggle(hostSelected, inv.id, setHostSelected)}
                 className={`px-2 py-1 rounded text-[10px] border ${
                   hostSelected.has(inv.id)
-                    ? "border-[#e94560] bg-[#e94560]/20 text-white"
-                    : "border-gray-700 text-gray-400"
+                    ? "border-[#ff6b9d] bg-[#ff6b9d]/20 text-white"
+                    : "border-[#ffd6e8] text-[#9494b0]"
                 }`}
               >
                 {inv.item.name}
@@ -218,7 +218,7 @@ export function TradePanel({ hostUserId, hostName, onTradeProposed }: TradePanel
       <Button size="sm" onClick={propose} disabled={loading} className="w-full">
         交換を申請
       </Button>
-      {message && <p className="text-xs text-center text-[#e94560]">{message}</p>}
+      {message && <p className="text-xs text-center text-[#ff6b9d]">{message}</p>}
     </div>
   );
 }

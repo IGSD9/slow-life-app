@@ -242,18 +242,18 @@ export function TetrisGame({ onGameOver }: TetrisGameProps) {
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="flex items-center justify-between w-full max-w-[240px]">
-        <span className="text-sm font-bold text-[#e94560]">SCORE: {score}</span>
+        <span className="text-sm font-bold text-[#ff6b9d]">SCORE: {score}</span>
         {paused && <span className="text-xs text-yellow-400">PAUSED</span>}
       </div>
       <canvas
         ref={canvasRef}
         width={COLS * BLOCK}
         height={ROWS * BLOCK}
-        className="border-2 border-[#e94560]/40 rounded"
+        className="border-2 border-[#ff6b9d]/40 rounded"
         style={{ imageRendering: "pixelated" }}
       />
       {gameOver && (
-        <p className="text-lg font-bold text-[#e94560]">GAME OVER</p>
+        <p className="text-lg font-bold text-[#ff6b9d]">GAME OVER</p>
       )}
       <div className="flex gap-2 md:hidden">
         <Button size="sm" variant="secondary" onClick={() => move(-1)}>←</Button>
@@ -261,7 +261,7 @@ export function TetrisGame({ onGameOver }: TetrisGameProps) {
         <Button size="sm" variant="secondary" onClick={() => move(1)}>→</Button>
         <Button size="sm" variant="secondary" onClick={hardDrop}>落下</Button>
       </div>
-      <p className="text-[10px] text-gray-500">
+      <p className="text-[10px] text-[#8888a8]">
         PC: 矢印キー移動/回転、Space落下 / スマホ: ボタン操作
       </p>
     </div>

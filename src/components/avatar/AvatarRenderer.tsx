@@ -18,7 +18,7 @@ interface AvatarRendererProps {
 
 const LAYER_COLORS: Record<string, string> = {
   clothing_bottom_default: "#4a90d9",
-  clothing_top_default: "#e94560",
+  clothing_top_default: "#ff6b9d",
   clothing_hat_default: "#f5a623",
   clothing_shoes_default: "#7b68ee",
   clothing_accessory_default: "#50e3c2",

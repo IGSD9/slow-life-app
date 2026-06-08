@@ -98,7 +98,7 @@ export function ScrollActionGame({ onGameOver }: ScrollActionGameProps) {
       ctx.fillStyle = "#3d2b1f";
       ctx.fillRect(0, GROUND + 30, W, 30);
 
-      ctx.fillStyle = "#e94560";
+      ctx.fillStyle = "#ff6b9d";
       ctx.fillRect(playerX, s.playerY, playerW, playerH);
 
       ctx.fillStyle = "#666";
@@ -134,17 +134,17 @@ export function ScrollActionGame({ onGameOver }: ScrollActionGameProps) {
         ref={canvasRef}
         width={W}
         height={H}
-        className="border-2 border-[#e94560]/40 rounded w-full max-w-[320px]"
+        className="border-2 border-[#ff6b9d]/40 rounded w-full max-w-[320px]"
         style={{ imageRendering: "pixelated" }}
         onClick={jump}
       />
       {gameOver && (
-        <p className="text-lg font-bold text-[#e94560]">GAME OVER — SCORE: {score}</p>
+        <p className="text-lg font-bold text-[#ff6b9d]">GAME OVER — SCORE: {score}</p>
       )}
       <Button size="sm" variant="secondary" onClick={jump} className="md:hidden">
         ジャンプ
       </Button>
-      <p className="text-[10px] text-gray-500">Space/タップでジャンプ</p>
+      <p className="text-[10px] text-[#8888a8]">Space/タップでジャンプ</p>
     </div>
   );
 }

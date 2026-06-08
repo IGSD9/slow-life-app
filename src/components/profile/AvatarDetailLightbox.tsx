@@ -36,12 +36,12 @@ export function AvatarDetailLightbox({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/92 backdrop-blur-md p-4"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-[#ff6b9d]/30 backdrop-blur-md p-4"
       onClick={onClose}
     >
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 z-10"
+        className="absolute top-4 right-4 p-2 rounded-full bg-white/90 text-[#4a4a6a] hover:bg-white shadow-sm z-10"
         aria-label="閉じる"
       >
         <X size={22} />
@@ -51,13 +51,13 @@ export function AvatarDetailLightbox({
         className="flex flex-col items-center gap-4 max-w-sm w-full"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2 text-[#e94560]">
+        <div className="flex items-center gap-2 text-[#ff6b9d]">
           <Gamepad2 size={18} />
           <span className="text-sm font-bold tracking-wide">ゲーム内の姿</span>
         </div>
 
-        <div className="relative w-full rounded-2xl overflow-hidden border-2 border-[#e94560]/50 shadow-[0_0_40px_rgba(233,69,96,0.25)]">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#2d1b4e] via-[#1a1a2e] to-[#0f0f1a]" />
+        <div className="relative w-full rounded-2xl overflow-hidden border-2 border-[#ff6b9d]/50 shadow-[0_0_40px_rgba(255,107,157,0.25)]">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#ffd6f0] via-[#ffeef8] to-[#d4f1ff]" />
           <div
             className="absolute inset-0 opacity-[0.07]"
             style={{
@@ -76,20 +76,20 @@ export function AvatarDetailLightbox({
         </div>
 
         <div className="text-center space-y-1">
-          <p className="text-lg font-bold text-white">{displayName}</p>
-          <p className="text-xs text-gray-400">
+          <p className="text-lg font-bold text-[#4a4a6a]">{displayName}</p>
+          <p className="text-xs text-[#9494b0]">
             ドット絵 · {PREVIEW_SIZE}px → {ZOOM_SIZE}px 拡大表示
           </p>
         </div>
 
         {equipped.length > 0 && (
-          <div className="w-full rounded-xl bg-[#1a1a2e]/80 border border-[#e94560]/20 p-3">
-            <p className="text-[10px] text-gray-500 mb-2">装備中</p>
+          <div className="w-full rounded-xl bg-white/90 border border-[#ffd6e8] p-3 shadow-sm">
+            <p className="text-[10px] text-[#8888a8] mb-2">装備中</p>
             <div className="flex flex-wrap gap-1.5 justify-center">
               {equipped.map((item) => (
                 <span
                   key={item.id}
-                  className="text-xs px-2 py-0.5 rounded-full bg-[#e94560]/15 text-[#e94560] border border-[#e94560]/30"
+                  className="text-xs px-2 py-0.5 rounded-full bg-[#ff6b9d]/15 text-[#ff6b9d] border border-[#ff6b9d]/30"
                 >
                   {item.name}
                 </span>
@@ -121,7 +121,7 @@ export function InGameAvatarPreview({
       className="flex items-end gap-2 text-left group"
       aria-label="ゲーム内の姿を拡大表示"
     >
-      <div className="rounded-lg border-2 border-white/80 bg-[#1a1a2e]/90 p-1 shadow-lg transition-transform group-hover:scale-105 group-hover:border-[#e94560]/80">
+      <div className="rounded-lg border-2 border-white/80 bg-[#fff0f6]/90 p-1 shadow-lg transition-transform group-hover:scale-105 group-hover:border-[#ff6b9d]/80">
         <AvatarRenderer config={config} items={items} size={PREVIEW_SIZE} />
       </div>
       <div className="mb-1">

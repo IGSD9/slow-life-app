@@ -46,7 +46,7 @@ export function ProfileAvatar({
     <Wrapper
       type={onClick ? "button" : undefined}
       onClick={onClick}
-      className={`relative shrink-0 rounded-full overflow-hidden border-2 border-[#e94560]/40 bg-[#1a1a2e] ${onClick ? "cursor-pointer hover:border-[#e94560]/70 hover:scale-[1.02] transition-all" : ""} ${className}`}
+      className={`relative shrink-0 rounded-full overflow-hidden border-2 border-[#ff6b9d]/40 bg-[#fff0f6] ${onClick ? "cursor-pointer hover:border-[#ff6b9d]/70 hover:scale-[1.02] transition-all" : ""} ${className}`}
       style={{ width: size, height: size }}
       aria-label={onClick ? "プロフィール画像を拡大表示" : undefined}
     >

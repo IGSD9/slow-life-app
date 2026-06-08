@@ -49,18 +49,18 @@ export function IncomingTrades() {
   if (trades.length === 0) return null;
 
   return (
-    <div className="bg-[#0f0f1a] rounded-xl border border-yellow-500/30 p-3 space-y-2">
+    <div className="bg-white rounded-xl border border-yellow-500/30 p-3 space-y-2">
       <h3 className="text-xs font-bold text-yellow-400 flex items-center gap-1">
         <ArrowLeftRight size={12} />
         トレード申請 ({trades.length})
       </h3>
       {trades.map((t) => (
-        <div key={t.id} className="bg-[#1a1a2e] rounded-lg p-2 text-[10px]">
+        <div key={t.id} className="bg-[#fff0f6] rounded-lg p-2 text-[10px]">
           <p className="font-bold">
             {t.isProposer ? `${t.receiverName} へ申請中` : `${t.proposerName} からの申請`}
           </p>
-          <p className="text-gray-400">提供: {t.proposerItemNames.join(", ") || "なし"}</p>
-          <p className="text-gray-400">希望: {t.receiverItemNames.join(", ") || "なし"}</p>
+          <p className="text-[#9494b0]">提供: {t.proposerItemNames.join(", ") || "なし"}</p>
+          <p className="text-[#9494b0]">希望: {t.receiverItemNames.join(", ") || "なし"}</p>
           <div className="flex gap-2 mt-1">
             {!t.isProposer && (
               <Button size="sm" onClick={() => respond("accept", t.id)}>
@@ -73,7 +73,7 @@ export function IncomingTrades() {
           </div>
         </div>
       ))}
-      {message && <p className="text-[10px] text-center text-[#e94560]">{message}</p>}
+      {message && <p className="text-[10px] text-center text-[#ff6b9d]">{message}</p>}
     </div>
   );
 }

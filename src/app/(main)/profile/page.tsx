@@ -166,7 +166,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-gray-400">読み込み中...</p>
+        <p className="text-[#9494b0]">読み込み中...</p>
       </div>
     );
   }
@@ -178,7 +178,7 @@ export default function ProfilePage() {
   return (
     <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full pb-24">
       <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-[#e94560]">プロフィール</h1>
+        <h1 className="text-lg font-bold text-[#ff6b9d]">プロフィール</h1>
         <Link href="/settings">
           <Button size="sm" variant="secondary" className="gap-1.5">
             <Settings size={14} />
@@ -187,7 +187,7 @@ export default function ProfilePage() {
         </Link>
       </div>
 
-      <div className="flex flex-col items-center gap-3 bg-[#0f0f1a] rounded-xl border border-[#e94560]/20 p-6">
+      <div className="flex flex-col items-center gap-3 bg-white rounded-xl border border-[#ff6b9d]/20 p-6">
         <ProfileAvatar
           profileIconUrl={p.profileIconUrl}
           config={config}
@@ -195,7 +195,7 @@ export default function ProfilePage() {
           size={96}
           onClick={() => setLightboxOpen(true)}
         />
-        <p className="text-[10px] text-gray-500 -mt-1">
+        <p className="text-[10px] text-[#8888a8] -mt-1">
           画像タップで拡大表示
         </p>
         <div className="flex flex-col gap-2 w-full max-w-xs">
@@ -212,7 +212,7 @@ export default function ProfilePage() {
           <Button
             size="sm"
             variant="ghost"
-            className="w-full gap-2 text-[#e94560]"
+            className="w-full gap-2 text-[#ff6b9d]"
             onClick={() => setDetailOpen(true)}
           >
             <Sparkles size={16} />
@@ -238,7 +238,7 @@ export default function ProfilePage() {
                 onChange={(e) => setNameInput(e.target.value)}
                 maxLength={20}
                 autoFocus
-                className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-[#e94560]/40 text-white text-center font-bold outline-none focus:border-[#e94560]"
+                className="w-full px-3 py-2 rounded-lg bg-[#fff0f6] border border-[#ffb3cc] text-[#4a4a6a] text-center font-bold outline-none focus:border-[#ff6b9d]"
               />
               {nameError && <p className="text-xs text-red-400">{nameError}</p>}
               <div className="flex gap-2 justify-center">
@@ -257,12 +257,12 @@ export default function ProfilePage() {
               <h2 className="font-bold text-lg flex items-center gap-1.5">
                 {p.displayName}
                 {p.isAdmin && (
-                  <span className="text-xs text-[#e94560]">[管理者]</span>
+                  <span className="text-xs text-[#ff6b9d]">[管理者]</span>
                 )}
               </h2>
               <button
                 onClick={startEditName}
-                className="p-1.5 rounded-md text-gray-400 hover:text-[#e94560] hover:bg-[#e94560]/10 transition-colors"
+                className="p-1.5 rounded-md text-[#9494b0] hover:text-[#ff6b9d] hover:bg-[#ff6b9d]/10 transition-colors"
                 aria-label="名前を編集"
               >
                 <Pencil size={14} />
@@ -276,12 +276,12 @@ export default function ProfilePage() {
 
         {profile.ownedTitles.length > 0 && (
           <div className="w-full max-w-xs space-y-1.5">
-            <label className="text-xs text-gray-400 block">表示する称号</label>
+            <label className="text-xs text-[#9494b0] block">表示する称号</label>
             <select
               value={p.title?.id ?? ""}
               onChange={(e) => changeEquippedTitle(e.target.value)}
               disabled={savingTitle}
-              className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-[#e94560]/20 text-white text-sm outline-none focus:border-[#e94560] disabled:opacity-50"
+              className="w-full px-3 py-2 rounded-lg bg-[#fff0f6] border border-[#ffd6e8] text-[#4a4a6a] text-sm outline-none focus:border-[#ff6b9d] disabled:opacity-50"
             >
               <option value="">なし</option>
               {profile.ownedTitles.map((t) => (
@@ -290,7 +290,7 @@ export default function ProfilePage() {
                 </option>
               ))}
             </select>
-            <p className="text-[10px] text-gray-500">
+            <p className="text-[10px] text-[#8888a8]">
               獲得した称号から選んでプロフィールに表示できます
             </p>
           </div>
@@ -315,18 +315,18 @@ export default function ProfilePage() {
 
       <section>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-bold text-gray-300">親密度ランキング</h3>
+          <h3 className="text-sm font-bold text-[#6a6a88]">親密度ランキング</h3>
           <button
             onClick={toggleRanking}
-            className="text-[10px] text-gray-400 underline"
+            className="text-[10px] text-[#9494b0] underline"
           >
             {p.showAffinityRank ? "非公開にする" : "公開する"}
           </button>
         </div>
         {!p.showAffinityRank ? (
-          <p className="text-sm text-gray-500 text-center py-4">非公開設定中</p>
+          <p className="text-sm text-[#8888a8] text-center py-4">非公開設定中</p>
         ) : ranking.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">
+          <p className="text-sm text-[#8888a8] text-center py-4">
             フレンドがいません
           </p>
         ) : (
@@ -334,10 +334,10 @@ export default function ProfilePage() {
             {ranking.map((r, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between bg-[#0f0f1a] rounded-lg border border-[#e94560]/20 p-3"
+                className="flex items-center justify-between bg-white rounded-lg border border-[#ff6b9d]/20 p-3"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-[#e94560] font-bold w-5">
+                  <span className="text-xs text-[#ff6b9d] font-bold w-5">
                     {i + 1}
                   </span>
                   <div>
@@ -348,8 +348,8 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-[#e94560]">{r.affinity}</p>
-                  <p className="text-[10px] text-gray-500">Lv.{r.level}</p>
+                  <p className="text-sm text-[#ff6b9d]">{r.affinity}</p>
+                  <p className="text-[10px] text-[#8888a8]">Lv.{r.level}</p>
                 </div>
               </div>
             ))}

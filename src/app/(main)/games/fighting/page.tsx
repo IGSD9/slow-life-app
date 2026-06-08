@@ -25,7 +25,7 @@ export default function FightingPage() {
     <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full pb-24">
       <div className="flex items-center gap-2">
         <Link href="/room"><Button variant="ghost" size="sm"><ArrowLeft size={16} /></Button></Link>
-        <h1 className="text-lg font-bold text-[#e94560]">大乱闘</h1>
+        <h1 className="text-lg font-bold text-[#ff6b9d]">大乱闘</h1>
       </div>
       <FightingGame key={key} onGameOver={(s) => submitScore("fighting", s).then(setResult)} />
     </div>

@@ -145,20 +145,20 @@ export function SolitaireGame({ onGameOver }: SolitaireGameProps) {
   return (
     <div className="flex flex-col gap-3 w-full max-w-md">
       <div className="flex justify-between text-sm">
-        <span className="text-[#e94560] font-bold">SCORE: {score}</span>
-        <span className="text-gray-400">手数: {moves}</span>
+        <span className="text-[#ff6b9d] font-bold">SCORE: {score}</span>
+        <span className="text-[#9494b0]">手数: {moves}</span>
       </div>
 
       <div className="flex gap-2 justify-between">
         <button
           onClick={drawStock}
-          className="w-12 h-16 bg-[#1a1a2e] border border-[#e94560]/30 rounded text-xs flex items-center justify-center"
+          className="w-12 h-16 bg-[#fff0f6] border border-[#ff6b9d]/30 rounded text-xs flex items-center justify-center"
         >
           {stock.length > 0 ? "🂠" : "↻"}
         </button>
         <button
           onClick={() => waste.length > 0 && moveToFoundation(waste[waste.length - 1], "waste")}
-          className="w-12 h-16 bg-[#1a1a2e] border border-gray-600 rounded text-xs"
+          className="w-12 h-16 bg-[#fff0f6] border border-gray-600 rounded text-xs"
         >
           {waste.length > 0 ? cardLabel(waste[waste.length - 1]) : ""}
         </button>
@@ -166,7 +166,7 @@ export function SolitaireGame({ onGameOver }: SolitaireGameProps) {
           {foundations.map((pile, i) => (
             <div
               key={i}
-              className="w-10 h-14 bg-[#1a1a2e]/50 border border-green-500/30 rounded text-[10px] flex items-center justify-center"
+              className="w-10 h-14 bg-[#fff0f6]/50 border border-green-500/30 rounded text-[10px] flex items-center justify-center"
             >
               {pile.length > 0 ? cardLabel(pile[pile.length - 1]) : SUITS[i]}
             </div>
@@ -180,7 +180,7 @@ export function SolitaireGame({ onGameOver }: SolitaireGameProps) {
             {col.length === 0 ? (
               <button
                 onClick={() => moveWasteToTableau(colIdx)}
-                className="w-10 h-14 border border-dashed border-gray-700 rounded"
+                className="w-10 h-14 border border-dashed border-[#ffd6e8] rounded"
               />
             ) : (
               col.map((card, cardIdx) => (
@@ -193,8 +193,8 @@ export function SolitaireGame({ onGameOver }: SolitaireGameProps) {
                   }}
                   className={`w-10 h-10 text-[9px] border rounded ${
                     card.faceUp
-                      ? "bg-[#1a1a2e] border-[#e94560]/30"
-                      : "bg-[#0a0a14] border-gray-700"
+                      ? "bg-[#fff0f6] border-[#ff6b9d]/30"
+                      : "bg-[#fff8fb] border-[#ffd6e8]"
                   }`}
                   style={{ marginTop: cardIdx > 0 ? -20 : 0 }}
                 >
@@ -220,7 +220,7 @@ export function SolitaireGame({ onGameOver }: SolitaireGameProps) {
           終了してスコア送信
         </Button>
       </div>
-      <p className="text-[10px] text-gray-500 text-center">
+      <p className="text-[10px] text-[#8888a8] text-center">
         カードをタップして.foundationへ移動 / 空列にKを配置
       </p>
     </div>

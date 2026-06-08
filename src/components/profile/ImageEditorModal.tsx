@@ -61,7 +61,7 @@ export function ImageEditorModal({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.fillStyle = "#0f0f1a";
+    ctx.fillStyle = "#fff8fb";
     ctx.fillRect(0, 0, vw, vh);
 
     ctx.save();
@@ -159,16 +159,16 @@ export function ImageEditorModal({
   const title = mode === "icon" ? "プロフィール画像の調整" : "高画質イラストの調整";
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[#ff6b9d]/25 backdrop-blur-sm p-4">
       <div
-        className="w-full max-w-sm bg-[#0f0f1a] rounded-2xl border border-[#e94560]/30 p-4 space-y-4"
+        className="w-full max-w-sm bg-white rounded-2xl border border-[#ffd6e8] p-4 space-y-4 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold text-white">{title}</h3>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-white"
+            className="p-1.5 text-[#9494b0] hover:text-[#ff6b9d]"
             aria-label="閉じる"
           >
             <X size={18} />
@@ -178,10 +178,10 @@ export function ImageEditorModal({
         <div className="flex justify-center">
           {loading ? (
             <div
-              className="flex items-center justify-center bg-[#1a1a2e] rounded-xl"
+              className="flex items-center justify-center bg-[#fff0f6] rounded-xl"
               style={{ width: vw, height: vh }}
             >
-              <p className="text-sm text-gray-400">読み込み中...</p>
+              <p className="text-sm text-[#9494b0]">読み込み中...</p>
             </div>
           ) : (
             <canvas
@@ -197,7 +197,7 @@ export function ImageEditorModal({
           )}
         </div>
 
-        <p className="text-[10px] text-gray-500 text-center">
+        <p className="text-[10px] text-[#8888a8] text-center">
           ドラッグで移動 · ボタンで回転・拡大縮小
         </p>
 
@@ -253,7 +253,7 @@ export function ImageEditorModal({
             <div />
             <button
               type="button"
-              className="p-2 rounded-lg bg-[#1a1a2e] hover:bg-[#252540] text-white"
+              className="p-2 rounded-lg bg-[#fff0f6] hover:bg-[#ffe4ef] text-[#4a4a6a]"
               onClick={() => pan(0, -PAN_STEP)}
               aria-label="上に移動"
             >
@@ -262,18 +262,18 @@ export function ImageEditorModal({
             <div />
             <button
               type="button"
-              className="p-2 rounded-lg bg-[#1a1a2e] hover:bg-[#252540] text-white"
+              className="p-2 rounded-lg bg-[#fff0f6] hover:bg-[#ffe4ef] text-[#4a4a6a]"
               onClick={() => pan(-PAN_STEP, 0)}
               aria-label="左に移動"
             >
               <ArrowLeft size={16} className="mx-auto" />
             </button>
-            <div className="flex items-center justify-center text-[10px] text-gray-500">
+            <div className="flex items-center justify-center text-[10px] text-[#8888a8]">
               移動
             </div>
             <button
               type="button"
-              className="p-2 rounded-lg bg-[#1a1a2e] hover:bg-[#252540] text-white"
+              className="p-2 rounded-lg bg-[#fff0f6] hover:bg-[#ffe4ef] text-[#4a4a6a]"
               onClick={() => pan(PAN_STEP, 0)}
               aria-label="右に移動"
             >
@@ -282,7 +282,7 @@ export function ImageEditorModal({
             <div />
             <button
               type="button"
-              className="p-2 rounded-lg bg-[#1a1a2e] hover:bg-[#252540] text-white"
+              className="p-2 rounded-lg bg-[#fff0f6] hover:bg-[#ffe4ef] text-[#4a4a6a]"
               onClick={() => pan(0, PAN_STEP)}
               aria-label="下に移動"
             >

@@ -61,7 +61,7 @@ export default function BattlePassPage() {
   if (!data) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-gray-400">読み込み中...</p>
+        <p className="text-[#9494b0]">読み込み中...</p>
       </div>
     );
   }
@@ -69,7 +69,7 @@ export default function BattlePassPage() {
   if (!data.season) {
     return (
       <div className="flex flex-col items-center gap-4 p-4 min-h-[60vh] justify-center">
-        <p className="text-gray-400">現在アクティブなシーズンがありません</p>
+        <p className="text-[#9494b0]">現在アクティブなシーズンがありません</p>
         <Link href="/room"><Button variant="secondary">部屋に戻る</Button></Link>
       </div>
     );
@@ -84,14 +84,14 @@ export default function BattlePassPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full pb-24">
-      <h1 className="text-lg font-bold text-[#e94560] flex items-center gap-2">
+      <h1 className="text-lg font-bold text-[#ff6b9d] flex items-center gap-2">
         <Crown size={20} />
         バトルパス
       </h1>
 
-      <div className="bg-[#0f0f1a] rounded-xl border border-[#e94560]/20 p-4">
+      <div className="bg-white rounded-xl border border-[#ff6b9d]/20 p-4">
         <h2 className="font-bold">{season.name}</h2>
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-[#9494b0]">
           終了: {new Date(season.endDate).toLocaleDateString("ja-JP")}
         </p>
         <div className="mt-3">
@@ -99,8 +99,8 @@ export default function BattlePassPage() {
             <span>Tier {progress.currentTier}</span>
             <span>{progress.currentExp}/{nextTierExp} EXP</span>
           </div>
-          <div className="h-2 bg-[#1a1a2e] rounded-full overflow-hidden">
-            <div className="h-full bg-[#e94560]" style={{ width: `${expPercent}%` }} />
+          <div className="h-2 bg-[#fff0f6] rounded-full overflow-hidden">
+            <div className="h-full bg-[#ff6b9d]" style={{ width: `${expPercent}%` }} />
           </div>
         </div>
         {!progress.isPremium && (
@@ -114,7 +114,7 @@ export default function BattlePassPage() {
       </div>
 
       <section>
-        <h3 className="text-sm font-bold text-gray-300 mb-2">フリーパス報酬</h3>
+        <h3 className="text-sm font-bold text-[#6a6a88] mb-2">フリーパス報酬</h3>
         <div className="space-y-2">
           {freeRewards.map((r) => (
             <RewardRow key={`f-${r.tier}`} reward={r} onClaim={claim} />
@@ -131,7 +131,7 @@ export default function BattlePassPage() {
         </div>
       </section>
 
-      {message && <p className="text-xs text-center text-[#e94560]">{message}</p>}
+      {message && <p className="text-xs text-center text-[#ff6b9d]">{message}</p>}
     </div>
   );
 }
@@ -147,11 +147,11 @@ function RewardRow({
 }) {
   return (
     <div className={`flex items-center justify-between rounded-lg border p-3 ${
-      premium ? "border-yellow-500/30 bg-[#0f0f1a]" : "border-[#e94560]/20 bg-[#0f0f1a]"
+      premium ? "border-yellow-500/30 bg-white" : "border-[#ff6b9d]/20 bg-white"
     }`}>
       <div className="flex items-center gap-2">
-        <span className="text-xs text-[#e94560] font-bold w-6">T{reward.tier}</span>
-        <Gift size={14} className="text-gray-400" />
+        <span className="text-xs text-[#ff6b9d] font-bold w-6">T{reward.tier}</span>
+        <Gift size={14} className="text-[#9494b0]" />
         <span className="text-sm">{reward.item.name}</span>
       </div>
       {reward.claimable && !reward.claimed && (
@@ -160,7 +160,7 @@ function RewardRow({
         </Button>
       )}
       {reward.claimed && (
-        <span className="text-[10px] text-gray-500">受取済</span>
+        <span className="text-[10px] text-[#8888a8]">受取済</span>
       )}
     </div>
   );

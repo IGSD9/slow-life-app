@@ -74,7 +74,7 @@ export function AdminPanel() {
   }
 
   return (
-    <div className="bg-[#0f0f1a] rounded-xl border border-yellow-500/40 p-4 space-y-4">
+    <div className="bg-white rounded-xl border border-yellow-500/40 p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold text-yellow-400 flex items-center gap-1.5">
           <Shield size={16} />
@@ -82,14 +82,14 @@ export function AdminPanel() {
         </h3>
         <button
           onClick={() => setOpen(false)}
-          className="text-xs text-gray-400 hover:text-white"
+          className="text-xs text-[#9494b0] hover:text-[#ff6b9d]"
         >
           閉じる
         </button>
       </div>
 
       <div>
-        <label className="text-xs text-gray-400 block mb-1">
+        <label className="text-xs text-[#9494b0] block mb-1">
           相手のメールアドレス
         </label>
         <input
@@ -97,18 +97,18 @@ export function AdminPanel() {
           value={targetEmail}
           onChange={(e) => setTargetEmail(e.target.value)}
           placeholder="user@example.com"
-          className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-yellow-500/20 text-white text-sm outline-none focus:border-yellow-500/60"
+          className="w-full px-3 py-2 rounded-lg bg-[#fff0f6] border border-yellow-500/20 text-white text-sm outline-none focus:border-yellow-500/60"
         />
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs text-gray-400 flex items-center gap-1">
+        <p className="text-xs text-[#9494b0] flex items-center gap-1">
           <Gift size={12} /> アイテムをプレゼント（交換不要・無条件）
         </p>
         <select
           value={selectedItemId}
           onChange={(e) => setSelectedItemId(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-yellow-500/20 text-white text-sm"
+          className="w-full px-3 py-2 rounded-lg bg-[#fff0f6] border border-yellow-500/20 text-white text-sm"
         >
           {items.map((item) => (
             <option key={item.id} value={item.id}>
@@ -131,13 +131,13 @@ export function AdminPanel() {
 
       <div className="flex gap-2">
         <div className="flex-1">
-          <label className="text-xs text-gray-400 block mb-1">レベル設定</label>
+          <label className="text-xs text-[#9494b0] block mb-1">レベル設定</label>
           <input
             type="number"
             value={level}
             onChange={(e) => setLevel(e.target.value)}
             min={1}
-            className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-yellow-500/20 text-white text-sm"
+            className="w-full px-3 py-2 rounded-lg bg-[#fff0f6] border border-yellow-500/20 text-white text-sm"
           />
         </div>
         <Button
@@ -155,13 +155,13 @@ export function AdminPanel() {
 
       <div className="flex gap-2">
         <div className="flex-1">
-          <label className="text-xs text-gray-400 block mb-1">EXP付与</label>
+          <label className="text-xs text-[#9494b0] block mb-1">EXP付与</label>
           <input
             type="number"
             value={exp}
             onChange={(e) => setExp(e.target.value)}
             min={1}
-            className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-yellow-500/20 text-white text-sm"
+            className="w-full px-3 py-2 rounded-lg bg-[#fff0f6] border border-yellow-500/20 text-white text-sm"
           />
         </div>
         <Button
@@ -179,13 +179,13 @@ export function AdminPanel() {
 
       <div className="flex gap-2">
         <div className="flex-1">
-          <label className="text-xs text-gray-400 block mb-1">ジェム付与</label>
+          <label className="text-xs text-[#9494b0] block mb-1">ジェム付与</label>
           <input
             type="number"
             value={gems}
             onChange={(e) => setGems(e.target.value)}
             min={1}
-            className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-yellow-500/20 text-white text-sm"
+            className="w-full px-3 py-2 rounded-lg bg-[#fff0f6] border border-yellow-500/20 text-white text-sm"
           />
         </div>
         <Button

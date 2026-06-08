@@ -32,7 +32,7 @@ export function ImageLightbox({
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-[#ff6b9d]/30 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <button
@@ -56,20 +56,20 @@ export function ImageLightbox({
             className="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl"
           />
         ) : fallbackConfig ? (
-          <div className="rounded-2xl border-4 border-[#e94560]/40 bg-[#1a1a2e] p-6">
+          <div className="rounded-2xl border-4 border-[#ff6b9d]/40 bg-[#fff0f6] p-6">
             <AvatarRenderer
               config={fallbackConfig}
               items={fallbackItems}
               size={200}
             />
-            <p className="text-center text-sm text-gray-400 mt-3">
+            <p className="text-center text-sm text-[#9494b0] mt-3">
               プロフィール画像未設定
             </p>
           </div>
         ) : null}
       </div>
 
-      <p className="absolute bottom-6 text-xs text-gray-500">タップで閉じる</p>
+      <p className="absolute bottom-6 text-xs text-[#8888a8]">タップで閉じる</p>
     </div>
   );
 }

@@ -45,24 +45,24 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="bg-[#0f0f1a] rounded-xl border border-[#e94560]/30 p-6 text-center">
-        <h2 className="text-lg font-bold text-[#e94560] mb-2">登録完了</h2>
-        <p className="text-sm text-gray-300 mb-3">
+      <div className="bg-white rounded-xl border border-[#ff6b9d]/30 p-6 text-center">
+        <h2 className="text-lg font-bold text-[#ff6b9d] mb-2">登録完了</h2>
+        <p className="text-sm text-[#6a6a88] mb-3">
           確認メールを送信しました。メール内のリンクをクリックしてアカウントを有効化してください。
         </p>
-        <div className="bg-[#1a1a2e] rounded-lg border border-yellow-500/30 p-3 mb-4 text-left">
+        <div className="bg-[#fff0f6] rounded-lg border border-yellow-500/30 p-3 mb-4 text-left">
           <p className="text-xs text-yellow-400 font-bold mb-1">⚠️ 重要</p>
-          <p className="text-xs text-gray-400 leading-relaxed">
+          <p className="text-xs text-[#9494b0] leading-relaxed">
             届くのは <span className="text-white font-medium">Supabase からの確認メール</span>
             です。GitHub からのメール（CI の通知）は登録確認ではありません。
           </p>
-          <p className="text-xs text-gray-400 leading-relaxed mt-2">
+          <p className="text-xs text-[#9494b0] leading-relaxed mt-2">
             確認リンクは
             <span className="text-white font-medium"> PC のブラウザ </span>
             で開いてください。
           </p>
         </div>
-        <p className="text-xs text-gray-500 mb-4">
+        <p className="text-xs text-[#8888a8] mb-4">
           メールが来ない場合は迷惑メールを確認するか、Supabase でメール確認を OFF にしてください。
         </p>
         <Link href="/login">
@@ -73,24 +73,24 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="bg-[#0f0f1a] rounded-xl border border-[#e94560]/30 p-6">
-      <h1 className="text-2xl font-bold text-center mb-6 text-[#e94560]">
+    <div className="bg-white rounded-xl border border-[#ff6b9d]/30 p-6">
+      <h1 className="text-2xl font-bold text-center mb-6 text-[#ff6b9d]">
         新規登録
       </h1>
 
       <form onSubmit={handleSignup} className="space-y-4">
         <div>
-          <label className="text-sm text-gray-300 block mb-1">メールアドレス</label>
+          <label className="text-sm text-[#6a6a88] block mb-1">メールアドレス</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-[#e94560]/20 text-white focus:border-[#e94560] outline-none"
+            className="w-full px-3 py-2 rounded-lg bg-[#fff0f6] border border-[#ffd6e8] text-[#4a4a6a] focus:border-[#ff6b9d] outline-none"
           />
         </div>
         <div>
-          <label className="text-sm text-gray-300 block mb-1">パスワード（6文字以上）</label>
+          <label className="text-sm text-[#6a6a88] block mb-1">パスワード（6文字以上）</label>
           <PasswordInput
             value={password}
             onChange={setPassword}
@@ -106,9 +106,9 @@ export default function SignupPage() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-gray-400 mt-4">
+      <p className="text-center text-sm text-[#9494b0] mt-4">
         すでにアカウントをお持ちの方は{" "}
-        <Link href="/login" className="text-[#e94560] hover:underline">
+        <Link href="/login" className="text-[#ff6b9d] hover:underline">
           ログイン
         </Link>
       </p>

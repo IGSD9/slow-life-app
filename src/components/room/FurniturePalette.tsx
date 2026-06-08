@@ -31,7 +31,7 @@ export function FurniturePalette({
 
   if (furniture.length === 0) {
     return (
-      <p className="text-sm text-gray-400 text-center py-4">
+      <p className="text-sm text-[#9494b0] text-center py-4">
         配置できる家具がありません
       </p>
     );
@@ -52,12 +52,12 @@ export function FurniturePalette({
               zIndex: 1,
             })
           }
-          className="flex flex-col items-center gap-1 p-2 rounded-lg bg-[#1a1a2e] border border-[#e94560]/20 hover:border-[#e94560]/60 transition-colors"
+          className="flex flex-col items-center gap-1 p-2 rounded-lg bg-[#fff0f6] border border-[#ff6b9d]/20 hover:border-[#ff6b9d]/60 transition-colors"
         >
           <div className="w-10 h-10 bg-[#4a5568] rounded flex items-center justify-center text-[10px] text-white">
             {inv.item.name.slice(0, 2)}
           </div>
-          <span className="text-[10px] text-gray-300 truncate w-full text-center">
+          <span className="text-[10px] text-[#6a6a88] truncate w-full text-center">
             {inv.item.name}
           </span>
         </button>

@@ -30,10 +30,10 @@ export function GameResultScreen({ title, result, onRetry }: GameResultScreenPro
   return (
     <>
       <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full pb-24">
-        <h1 className="text-lg font-bold text-[#e94560]">{title}</h1>
+        <h1 className="text-lg font-bold text-[#ff6b9d]">{title}</h1>
         <div className="flex flex-col items-center gap-4 py-8">
           <h2 className="text-xl font-bold">ゲーム終了</h2>
-          <p className="text-2xl text-[#e94560] font-bold">SCORE: {result.score}</p>
+          <p className="text-2xl text-[#ff6b9d] font-bold">SCORE: {result.score}</p>
           {result.expGain !== undefined && (
             <p className="text-sm text-green-400">+{result.expGain} EXP 獲得！</p>
           )}

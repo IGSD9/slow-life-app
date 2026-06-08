@@ -4,8 +4,8 @@
   "description": "GBA風クロスプラットフォーム・ライフシミュレーションゲーム",
   "start_url": "/room",
   "display": "standalone",
-  "background_color": "#0a0a14",
-  "theme_color": "#e94560",
+  "background_color": "#fff8fb",
+  "theme_color": "#ff6b9d",
   "orientation": "portrait",
   "icons": [
     {

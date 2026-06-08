@@ -45,28 +45,28 @@ export default function MissionsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 max-w-lg mx-auto w-full">
-      <h1 className="text-lg font-bold text-[#e94560]">ミッション</h1>
+      <h1 className="text-lg font-bold text-[#ff6b9d]">ミッション</h1>
 
       <section>
-        <h2 className="text-sm font-bold text-gray-300 mb-3">デイリーミッション</h2>
+        <h2 className="text-sm font-bold text-[#6a6a88] mb-3">デイリーミッション</h2>
         <div className="space-y-2">
           {daily.map((m) => (
             <MissionCard key={m.id} mission={m} onClaim={claim} />
           ))}
           {daily.length === 0 && (
-            <p className="text-sm text-gray-500">ミッションがありません</p>
+            <p className="text-sm text-[#8888a8]">ミッションがありません</p>
           )}
         </div>
       </section>
 
       <section>
-        <h2 className="text-sm font-bold text-gray-300 mb-3">アチーブメント</h2>
+        <h2 className="text-sm font-bold text-[#6a6a88] mb-3">アチーブメント</h2>
         <div className="space-y-2">
           {achievements.map((m) => (
             <MissionCard key={m.id} mission={m} onClaim={claim} />
           ))}
           {achievements.length === 0 && (
-            <p className="text-sm text-gray-500">アチーブメントがありません</p>
+            <p className="text-sm text-[#8888a8]">アチーブメントがありません</p>
           )}
         </div>
       </section>
@@ -87,24 +87,24 @@ function MissionCard({
   );
 
   return (
-    <div className="bg-[#0f0f1a] rounded-lg border border-[#e94560]/20 p-3">
+    <div className="bg-white rounded-lg border border-[#ff6b9d]/20 p-3">
       <div className="flex justify-between items-start mb-2">
         <div>
           <p className="text-sm font-bold">{mission.title}</p>
-          <p className="text-[10px] text-gray-400">{mission.description}</p>
+          <p className="text-[10px] text-[#9494b0]">{mission.description}</p>
         </div>
-        <span className="text-[10px] text-[#e94560] whitespace-nowrap">
+        <span className="text-[10px] text-[#ff6b9d] whitespace-nowrap">
           +{mission.expReward} EXP
           {mission.coinReward > 0 && ` / +${mission.coinReward} 🪙`}
         </span>
       </div>
-      <div className="h-1.5 bg-[#1a1a2e] rounded-full overflow-hidden">
+      <div className="h-1.5 bg-[#fff0f6] rounded-full overflow-hidden">
         <div
-          className="h-full bg-[#e94560] transition-all"
+          className="h-full bg-[#ff6b9d] transition-all"
           style={{ width: `${percent}%` }}
         />
       </div>
-      <p className="text-[10px] text-gray-500 mt-1">
+      <p className="text-[10px] text-[#8888a8] mt-1">
         {mission.progress}/{mission.targetValue}
         {mission.completed && !mission.claimed && (
           <button

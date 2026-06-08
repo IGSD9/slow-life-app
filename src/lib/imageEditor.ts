@@ -65,7 +65,7 @@ export function renderEditedImage(
   const ctx = canvas.getContext("2d");
   if (!ctx) return Promise.reject(new Error("NO_CANVAS"));
 
-  ctx.fillStyle = "#1a1a2e";
+  ctx.fillStyle = "#fff8fb";
   ctx.fillRect(0, 0, ow, oh);
 
   ctx.save();

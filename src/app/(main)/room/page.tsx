@@ -139,7 +139,7 @@ export default function RoomPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-400">読み込み中...</p>
+        <p className="text-[#9494b0]">読み込み中...</p>
       </div>
     );
   }
@@ -166,10 +166,10 @@ export default function RoomPage() {
             onClick={() => setLightboxOpen(true)}
           />
           <div>
-            <a href="/profile" className="font-bold text-sm flex items-center gap-1.5 hover:text-[#e94560] transition-colors">
+            <a href="/profile" className="font-bold text-sm flex items-center gap-1.5 hover:text-[#ff6b9d] transition-colors">
               {profile?.displayName ?? "プレイヤー"}
               {profile?.isAdmin && (
-                <span className="text-[10px] font-bold text-[#e94560] bg-[#e94560]/10 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] font-bold text-[#ff6b9d] bg-[#ff6b9d]/10 px-1.5 py-0.5 rounded">
                   [管理者]
                 </span>
               )}
@@ -216,7 +216,7 @@ export default function RoomPage() {
       </div>
 
       {!isEditing && remotePlayers.length > 0 && (
-        <p className="text-[10px] text-gray-500 text-center">
+        <p className="text-[10px] text-[#8888a8] text-center">
           お客さん: {remotePlayers.map((p) => p.displayName).join(", ")}
         </p>
       )}
@@ -234,8 +234,8 @@ export default function RoomPage() {
               setFloorId(f);
             }}
           />
-          <div className="bg-[#0f0f1a] rounded-lg border border-[#e94560]/20 p-3">
-            <h3 className="text-sm font-bold mb-2 text-gray-300">家具を配置</h3>
+          <div className="bg-white rounded-lg border border-[#ff6b9d]/20 p-3">
+            <h3 className="text-sm font-bold mb-2 text-[#6a6a88]">家具を配置</h3>
             <FurniturePalette
               items={room.user.inventory}
               onPlace={handlePlace}
@@ -246,7 +246,7 @@ export default function RoomPage() {
       )}
 
       {!isEditing && (
-        <p className="text-[10px] text-gray-500 text-center flex items-center justify-center gap-1">
+        <p className="text-[10px] text-[#8888a8] text-center flex items-center justify-center gap-1">
           <Monitor size={12} />
           立体部屋をタップ/矢印で移動 · PCの隣で「PCを起動」
         </p>
