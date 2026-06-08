@@ -21,10 +21,9 @@ import {
   drawPixelCharacter,
   drawPlatformBase,
   drawRoomBoundsOutline,
-  drawSkyBackground,
   floorElevation,
   gridToScreen,
-  isDeckCell,
+  isLoftCell,
   isRoomWallCell,
   resolveCharacterColors,
   screenToGrid,
@@ -32,6 +31,20 @@ import {
   ISO_BLOCK_H,
   ISO_WALL_LAYERS,
 } from "@/lib/isometric";
+import {
+  drawDamaskOnWalls,
+  drawHousingBackground,
+  drawLoftRisers,
+  drawOutdoorCheckerPad,
+  drawRugTile,
+  drawStairs,
+  drawTemplateBed,
+  drawTemplateNightstand,
+  drawWallTopWindows,
+  isRugCell,
+  isStairCell,
+  ROOM_COLORS,
+} from "@/lib/roomTemplate";
 import type { AvatarConfig } from "@/types/avatar";
 
 interface ItemInfo {
@@ -70,22 +83,13 @@ const FURNITURE: Record<string, { color: string; layers: number }> = {
 };
 
 const WALLPAPER: Record<string, string> = {
-  wall_default: "#e8a8c8",
+  wall_default: ROOM_COLORS.wall,
   wall_blue: "#8ab4d9",
   wall_pink: "#f0b0d0",
 };
 
-const FLOOR: Record<string, string> = {
-  floor_default: "#c49a6c",
-  floor_wood: "#b8895a",
-  floor_tile: "#9a9aaa",
-};
-
-const DECK_FLOOR: Record<string, string> = {
-  floor_default: "#d4aa78",
-  floor_wood: "#c99760",
-  floor_tile: "#b0b0c0",
-};
+/** ラグ上が初期スポーン */
+const DEFAULT_SPAWN = { gridX: 7, gridY: 7 };
 
 function getOccupiedCells(layout: RoomLayout): Set<string> {
   const cells = new Set<string>();
@@ -93,9 +97,15 @@ function getOccupiedCells(layout: RoomLayout): Set<string> {
   return cells;
 }
 
-/** 奥2面壁（背面+左側面）、手前・右側は開放 */
 function isWallCell(x: number, y: number): boolean {
   return isRoomWallCell(x, y, GRID_WIDTH);
+}
+
+function isTemplateBlockedCell(x: number, y: number): boolean {
+  if (isStairCell(x, y)) return true;
+  if (x === 2 && y === 2) return true;
+  if (x === 5 && y === 2) return true;
+  return false;
 }
 
 export function RoomCanvas({
@@ -106,7 +116,7 @@ export function RoomCanvas({
   titleName,
   isAdmin = false,
   wallpaperId = "wall_default",
-  floorId = "floor_default",
+  floorId: _floorId = "floor_default",
   isEditing = false,
   readOnly = false,
   controlledPos,
@@ -120,7 +130,7 @@ export function RoomCanvas({
 }: RoomCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [internalPos, setInternalPos] = useState({ gridX: 8, gridY: 8 });
+  const [internalPos, setInternalPos] = useState(DEFAULT_SPAWN);
   const [internalDir, setInternalDir] = useState<Direction>("down");
   const [hoverCell, setHoverCell] = useState<{ gridX: number; gridY: number } | null>(null);
   const playerPos = controlledPos ?? internalPos;
@@ -166,43 +176,50 @@ export function RoomCanvas({
     ctx.save();
     ctx.scale(scaleX, scaleY);
 
-    drawSkyBackground(ctx, BW, BH);
+    drawHousingBackground(ctx, BW, BH);
+    drawOutdoorCheckerPad(ctx, GRID_WIDTH, GRID_HEIGHT);
 
-    const floorColor = FLOOR[floorId] ?? "#c49a6c";
-    const deckColor = DECK_FLOOR[floorId] ?? "#d4aa78";
-    const wallColor = WALLPAPER[wallpaperId] ?? "#e8a8c8";
-    const baseColor = "#8a9aaa";
-    const usePlank = floorId !== "floor_tile";
+    const wallColor = WALLPAPER[wallpaperId] ?? ROOM_COLORS.wall;
 
-    drawPlatformBase(ctx, GRID_WIDTH, GRID_HEIGHT, baseColor);
+    drawPlatformBase(ctx, GRID_WIDTH, GRID_HEIGHT, ROOM_COLORS.platform);
 
     const floorCells: { x: number; y: number; key: number; z: number }[] = [];
     for (let y = 1; y < GRID_HEIGHT; y++) {
       for (let x = 1; x < GRID_WIDTH - 1; x++) {
+        if (isStairCell(x, y)) continue;
         const z = floorElevation(x, y);
         floorCells.push({ x, y, key: depthKey(x, y, z), z });
       }
     }
     floorCells.sort((a, b) => a.key - b.key);
 
+    drawLoftRisers(ctx, GRID_WIDTH, GRID_HEIGHT);
+
     for (const { x, y, z } of floorCells) {
       const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT, z);
       const isHighlight =
         isEditing && hoverCell?.gridX === x && hoverCell?.gridY === y;
       const isPlayer = playerPos.gridX === x && playerPos.gridY === y;
-      const onDeck = z > 0;
-      drawIsoFloorTile(
-        ctx,
-        sx,
-        sy,
-        onDeck ? deckColor : floorColor,
-        isHighlight || isPlayer,
-        usePlank,
-      );
+
+      if (isRugCell(x, y)) {
+        drawRugTile(ctx, sx, sy);
+      } else if (isLoftCell(x, y)) {
+        drawIsoFloorTile(ctx, sx, sy, ROOM_COLORS.loftFloor, isHighlight || isPlayer, false);
+      } else {
+        const checker = (x + y) % 2 === 0 ? ROOM_COLORS.floorA : ROOM_COLORS.floorB;
+        drawIsoFloorTile(ctx, sx, sy, checker, isHighlight || isPlayer, true);
+      }
     }
+
+    drawStairs(ctx, GRID_WIDTH, GRID_HEIGHT);
 
     drawContinuousBackWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
     drawContinuousLeftWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
+    drawDamaskOnWalls(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS, wallColor);
+    drawWallTopWindows(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS);
+
+    drawTemplateBed(ctx, GRID_WIDTH, GRID_HEIGHT);
+    drawTemplateNightstand(ctx, GRID_WIDTH, GRID_HEIGHT);
 
     if (isEditing) {
       drawRoomBoundsOutline(ctx, GRID_WIDTH, GRID_HEIGHT);
@@ -292,7 +309,6 @@ export function RoomCanvas({
     spriteById,
     avatarConfig,
     wallpaperId,
-    floorId,
     playerPos,
     direction,
     displayName,
@@ -331,6 +347,7 @@ export function RoomCanvas({
       const newX = Math.max(1, Math.min(GRID_WIDTH - 2, prev.gridX + dx));
       const newY = Math.max(1, Math.min(GRID_HEIGHT - 1, prev.gridY + dy));
       if (getOccupiedCells(layout).has(`${newX},${newY}`)) return;
+      if (isTemplateBlockedCell(newX, newY)) return;
 
       if (controlledPos) {
         onPlayerMove?.(newX, newY, dir);
@@ -415,7 +432,7 @@ export function RoomCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden rounded-xl border-2 border-[#7ec8e8]/50 shadow-lg shadow-[#7ec8e8]/20"
+      className="relative w-full overflow-hidden rounded-xl border-2 border-[#7c6a8a]/40 shadow-lg shadow-black/30"
     >
       <canvas
         ref={canvasRef}

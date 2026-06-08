@@ -5,20 +5,25 @@ export const ISO_TILE_H = 20;
 export const ISO_BLOCK_H = 17;
 export const ISO_WALL_LAYERS = 6;
 
-/** 中央エリア（色分け用・高さは床と同一） */
-export const DECK_BOUNDS = { minX: 4, maxX: 11, minY: 3, maxY: 7 };
+/** 奥左ロフト（段差付きベッドエリア） */
+export const LOFT_BOUNDS = { minX: 1, maxX: 6, minY: 1, maxY: 4 };
 
-export function floorElevation(_gridX: number, _gridY: number): number {
-  return 0;
+export function isLoftCell(gridX: number, gridY: number): boolean {
+  return (
+    gridX >= LOFT_BOUNDS.minX &&
+    gridX <= LOFT_BOUNDS.maxX &&
+    gridY >= LOFT_BOUNDS.minY &&
+    gridY <= LOFT_BOUNDS.maxY
+  );
 }
 
+export function floorElevation(gridX: number, gridY: number): number {
+  return isLoftCell(gridX, gridY) ? 1 : 0;
+}
+
+/** @deprecated isLoftCell を使用 */
 export function isDeckCell(gridX: number, gridY: number): boolean {
-  return (
-    gridX >= DECK_BOUNDS.minX &&
-    gridX <= DECK_BOUNDS.maxX &&
-    gridY >= DECK_BOUNDS.minY &&
-    gridY <= DECK_BOUNDS.maxY
-  );
+  return isLoftCell(gridX, gridY);
 }
 
 /** タイル上面の立ち位置（足元） */
@@ -192,36 +197,6 @@ export function drawContinuousBackWall(
   ctx.fillStyle = shade(color, -30);
   ctx.fill();
 
-  ctx.save();
-  ctx.strokeStyle = shade(color, 40);
-  ctx.lineWidth = 0.4;
-  for (let i = 0; i < 3; i++) {
-    const oy = baseL - h + 8 + i * 10;
-    const slope = (baseR - baseL) / Math.max(1, right.x - left.x);
-    ctx.beginPath();
-    ctx.moveTo(left.x - hw * 0.7, oy);
-    ctx.lineTo(right.x + hw * 0.7, oy + (right.x - left.x) * slope + 4);
-    ctx.stroke();
-  }
-  ctx.restore();
-
-  for (let x = x0; x <= x1; x++) {
-    if (x % 3 !== 1) continue;
-    const { x: sx, y: sy } = gridToScreen(x, 0, gridW, gridH, 0);
-    const baseY = sy + hh;
-    const wy = baseY - h + 14;
-    ctx.fillStyle = "#a8e4ff";
-    ctx.fillRect(sx - 5, wy, 10, 12);
-    ctx.strokeStyle = "#f5f0e8";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(sx - 5, wy, 10, 12);
-    ctx.beginPath();
-    ctx.moveTo(sx, wy);
-    ctx.lineTo(sx, wy + 12);
-    ctx.moveTo(sx - 5, wy + 6);
-    ctx.lineTo(sx + 5, wy + 6);
-    ctx.stroke();
-  }
 }
 
 /** 左側壁を1枚の面として描画 */
@@ -263,18 +238,6 @@ export function drawContinuousLeftWall(
   ctx.fillStyle = shade(color, -12);
   ctx.fill();
 
-  ctx.save();
-  ctx.strokeStyle = shade(color, 40);
-  ctx.lineWidth = 0.4;
-  for (let i = 0; i < 3; i++) {
-    const oy = baseB - h + 8 + i * 10;
-    const slope = (baseF - baseB) / Math.max(1, front.x - back.x);
-    ctx.beginPath();
-    ctx.moveTo(back.x - hw * 0.7, oy);
-    ctx.lineTo(front.x - hw * 0.7, oy + (front.x - back.x) * slope + 4);
-    ctx.stroke();
-  }
-  ctx.restore();
 }
 
 /** パターン壁（ピンク系ドット柄） */
