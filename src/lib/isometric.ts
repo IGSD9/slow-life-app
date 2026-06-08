@@ -206,27 +206,25 @@ export function drawIsoPatternWall(
   ctx.restore();
 }
 
-/** 部屋の外枠（編集時の青い境界線） */
+/** 部屋の外枠（編集時・手前開放の3辺） */
 export function drawRoomBoundsOutline(
   ctx: CanvasRenderingContext2D,
   gridW: number,
   gridH: number,
 ) {
-  const corners = [
-    gridToScreen(0.5, 0.5, gridW, gridH, 0),
-    gridToScreen(gridW - 0.5, 0.5, gridW, gridH, 0),
-    gridToScreen(gridW - 0.5, gridH - 0.5, gridW, gridH, 0),
-    gridToScreen(0.5, gridH - 0.5, gridW, gridH, 0),
-  ];
+  const backLeft = gridToScreen(0.5, 0.5, gridW, gridH, 0);
+  const backRight = gridToScreen(gridW - 0.5, 0.5, gridW, gridH, 0);
+  const frontRight = gridToScreen(gridW - 0.5, gridH - 0.5, gridW, gridH, 0);
+  const frontLeft = gridToScreen(0.5, gridH - 0.5, gridW, gridH, 0);
+
   ctx.strokeStyle = "rgba(80, 160, 255, 0.55)";
   ctx.lineWidth = 2;
   ctx.setLineDash([4, 3]);
   ctx.beginPath();
-  ctx.moveTo(corners[0].x, corners[0].y);
-  for (let i = 1; i < corners.length; i++) {
-    ctx.lineTo(corners[i].x, corners[i].y);
-  }
-  ctx.closePath();
+  ctx.moveTo(backLeft.x, backLeft.y);
+  ctx.lineTo(backRight.x, backRight.y);
+  ctx.lineTo(frontRight.x, frontRight.y);
+  ctx.lineTo(frontLeft.x, frontLeft.y);
   ctx.stroke();
   ctx.setLineDash([]);
 }
@@ -304,31 +302,48 @@ export function drawIsoWall(
   drawIsoBlock(ctx, sx, sy, color, layers);
 }
 
-/** 浮遊台座（部屋全体の土台） */
+/** 浮遊台座（奥2面のみ・手前は開放） */
 export function drawPlatformBase(
   ctx: CanvasRenderingContext2D,
   gridW: number,
   gridH: number,
   color: string,
 ) {
-  const corners = [
-    gridToScreen(-0.5, -0.5, gridW, gridH, -0.8),
-    gridToScreen(gridW - 0.5, -0.5, gridW, gridH, -0.8),
-    gridToScreen(gridW - 0.5, gridH - 0.5, gridW, gridH, -0.8),
-    gridToScreen(-0.5, gridH - 0.5, gridW, gridH, -0.8),
-  ];
+  const backLeft = gridToScreen(-0.5, -0.5, gridW, gridH, -0.8);
+  const backRight = gridToScreen(gridW - 0.5, -0.5, gridW, gridH, -0.8);
+  const frontLeft = gridToScreen(-0.5, gridH - 0.5, gridW, gridH, -0.8);
+
   const baseLayers = 2;
+  const rimDepth = 5;
   for (let layer = baseLayers; layer >= 1; layer--) {
-    const offset = layer * 4;
-    ctx.beginPath();
-    ctx.moveTo(corners[0].x, corners[0].y + offset);
-    ctx.lineTo(corners[1].x, corners[1].y + offset);
-    ctx.lineTo(corners[2].x, corners[2].y + offset);
-    ctx.lineTo(corners[3].x, corners[3].y + offset);
-    ctx.closePath();
+    const o = layer * 4;
     ctx.fillStyle = shade(color, -layer * 15);
+
+    // 背面の縁
+    ctx.beginPath();
+    ctx.moveTo(backLeft.x, backLeft.y + o);
+    ctx.lineTo(backRight.x, backRight.y + o);
+    ctx.lineTo(backRight.x, backRight.y + o + rimDepth);
+    ctx.lineTo(backLeft.x, backLeft.y + o + rimDepth);
+    ctx.closePath();
+    ctx.fill();
+
+    // 左側面の縁（奥に接続）
+    ctx.beginPath();
+    ctx.moveTo(backLeft.x, backLeft.y + o);
+    ctx.lineTo(frontLeft.x, frontLeft.y + o);
+    ctx.lineTo(frontLeft.x, frontLeft.y + o + rimDepth);
+    ctx.lineTo(backLeft.x, backLeft.y + o + rimDepth);
+    ctx.closePath();
     ctx.fill();
   }
+}
+
+/** 奥2面の壁（背面 y=0 + 左側面 x=0）。手前・右側は開放 */
+export function isRoomWallCell(gridX: number, gridY: number, gridW: number): boolean {
+  if (gridY === 0) return true;
+  if (gridX === 0 && gridY > 0) return true;
+  return false;
 }
 
 /** キャラクター（ミニボクセル人型） */

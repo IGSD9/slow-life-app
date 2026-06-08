@@ -26,6 +26,7 @@ import {
   floorElevation,
   gridToScreen,
   isDeckCell,
+  isRoomWallCell,
   screenToGrid,
   ISO_BLOCK_H,
   ISO_WALL_LAYERS,
@@ -91,9 +92,9 @@ function getOccupiedCells(layout: RoomLayout): Set<string> {
   return cells;
 }
 
-/** 3面壁（正面は開放してダイオラマ風に） */
+/** 奥2面壁（背面+左側面）、手前・右側は開放 */
 function isWallCell(x: number, y: number): boolean {
-  return x === 0 || y === 0 || x === GRID_WIDTH - 1;
+  return isRoomWallCell(x, y, GRID_WIDTH);
 }
 
 export function RoomCanvas({
@@ -228,7 +229,7 @@ export function RoomCanvas({
     for (let y = 0; y < GRID_HEIGHT; y++) {
       for (let x = 0; x < GRID_WIDTH; x++) {
         if (isWallCell(x, y)) {
-          const isBack = y === 0 && x > 0 && x < GRID_WIDTH - 1;
+          const isBack = y === 0 && x > 0;
           wallCells.push({
             x,
             y,
