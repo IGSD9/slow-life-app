@@ -32,7 +32,7 @@ interface CharacterDetailModalProps {
   onClose: () => void;
   data: CharacterDetailData;
   isOwnProfile?: boolean;
-  onPortraitUpload?: (file: File) => void;
+  onPortraitPick?: () => void;
   uploadingPortrait?: boolean;
 }
 
@@ -46,19 +46,13 @@ export function CharacterDetailModal({
   onClose,
   data,
   isOwnProfile = false,
-  onPortraitUpload,
+  onPortraitPick,
   uploadingPortrait = false,
 }: CharacterDetailModalProps) {
   if (!open) return null;
 
   const hqSrc = data.portraitUrl ?? data.profileIconUrl;
   const tName = titleName(data.title);
-
-  const handlePortraitFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && onPortraitUpload) onPortraitUpload(file);
-    e.target.value = "";
-  };
 
   return (
     <div
@@ -112,18 +106,16 @@ export function CharacterDetailModal({
             </span>
           </div>
 
-          {isOwnProfile && onPortraitUpload && (
-            <label className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 text-white text-xs cursor-pointer hover:bg-black/80 transition-colors">
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                className="sr-only"
-                onChange={handlePortraitFile}
-                disabled={uploadingPortrait}
-              />
+          {isOwnProfile && onPortraitPick && (
+            <button
+              type="button"
+              onClick={onPortraitPick}
+              disabled={uploadingPortrait}
+              className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/60 text-white text-xs hover:bg-black/80 transition-colors disabled:opacity-50"
+            >
               <Camera size={14} />
-              {uploadingPortrait ? "アップロード中..." : "高画質イラスト"}
-            </label>
+              {uploadingPortrait ? "保存中..." : "高画質イラストを変更"}
+            </button>
           )}
         </div>
 

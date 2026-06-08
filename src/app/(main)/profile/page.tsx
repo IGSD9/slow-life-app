@@ -2,12 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Pencil, Settings, Check, X } from "lucide-react";
+import { Pencil, Settings, Check, X, Camera, Sparkles } from "lucide-react";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { CharacterDetailModal } from "@/components/profile/CharacterDetailModal";
+import { ImageLightbox } from "@/components/profile/ImageLightbox";
+import { ImageEditorModal } from "@/components/profile/ImageEditorModal";
 import { LevelBar } from "@/components/ui/LevelBar";
 import { Button } from "@/components/ui/Button";
 import { useProfileImageUpload } from "@/hooks/useProfileImageUpload";
+import { useImageEditorUpload } from "@/hooks/useImageEditorUpload";
 import type { AvatarConfig } from "@/types/avatar";
 
 interface AffinityEntry {
@@ -51,6 +54,7 @@ export default function ProfilePage() {
   const [savingName, setSavingName] = useState(false);
   const [savingTitle, setSavingTitle] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [pRes, rRes] = await Promise.all([
@@ -66,6 +70,7 @@ export default function ProfilePage() {
   }, [fetchData]);
 
   const { upload, uploading, error: uploadError } = useProfileImageUpload(fetchData);
+  const editor = useImageEditorUpload(upload);
 
   const toggleRanking = async () => {
     if (!profile) return;
@@ -163,14 +168,39 @@ export default function ProfilePage() {
           config={config}
           items={items}
           size={96}
-          editable
-          uploading={uploading === "icon"}
-          onUpload={(file) => upload("icon", file)}
-          onClick={() => setDetailOpen(true)}
+          onClick={() => setLightboxOpen(true)}
         />
         <p className="text-[10px] text-gray-500 -mt-1">
-          タップで詳細 · カメラでアイコン変更
+          画像タップで拡大表示
         </p>
+        <div className="flex flex-col gap-2 w-full max-w-xs">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="w-full gap-2"
+            onClick={() => editor.openPicker("icon")}
+            disabled={uploading === "icon" || editor.saving}
+          >
+            <Camera size={16} />
+            プロフィール画像を変更
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="w-full gap-2 text-[#e94560]"
+            onClick={() => setDetailOpen(true)}
+          >
+            <Sparkles size={16} />
+            キャラ詳細を見る
+          </Button>
+        </div>
+        <input
+          ref={editor.inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          className="sr-only"
+          onChange={editor.onFileChange}
+        />
         {uploadError && (
           <p className="text-xs text-red-400 text-center">{uploadError}</p>
         )}
@@ -302,12 +332,30 @@ export default function ProfilePage() {
         )}
       </section>
 
+      <ImageLightbox
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        imageUrl={p.profileIconUrl}
+        alt={p.displayName}
+        fallbackConfig={config}
+        fallbackItems={items}
+      />
+
+      <ImageEditorModal
+        open={editor.editorOpen}
+        file={editor.editorFile}
+        mode={editor.editorMode}
+        onClose={editor.closeEditor}
+        onSave={editor.saveEdited}
+        saving={editor.saving || uploading === editor.pendingKind}
+      />
+
       <CharacterDetailModal
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
         isOwnProfile
-        onPortraitUpload={(file) => upload("portrait", file)}
-        uploadingPortrait={uploading === "portrait"}
+        onPortraitPick={() => editor.openPicker("portrait")}
+        uploadingPortrait={uploading === "portrait" || (editor.saving && editor.pendingKind === "portrait")}
         data={{
           displayName: p.displayName,
           level: p.level,

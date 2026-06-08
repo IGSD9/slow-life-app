@@ -10,7 +10,7 @@ import { PCDesktopOverlay } from "@/components/room/PCDesktopOverlay";
 import { LevelBar } from "@/components/ui/LevelBar";
 import { Button } from "@/components/ui/Button";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
-import { CharacterDetailModal } from "@/components/profile/CharacterDetailModal";
+import { ImageLightbox } from "@/components/profile/ImageLightbox";
 import { AdminPanel } from "@/components/admin/AdminPanel";
 import { IncomingTrades } from "@/components/social/IncomingTrades";
 import { useRoomSync } from "@/hooks/useRoomSync";
@@ -61,7 +61,7 @@ export default function RoomPage() {
   const [layout, setLayout] = useState<RoomLayout>([]);
   const [wallpaperId, setWallpaperId] = useState("wall_default");
   const [floorId, setFloorId] = useState("floor_default");
-  const [detailOpen, setDetailOpen] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const fetchRoom = useCallback(async () => {
     const res = await fetch("/api/room");
@@ -155,7 +155,7 @@ export default function RoomPage() {
             config={avatarConfig}
             items={items}
             size={40}
-            onClick={() => setDetailOpen(true)}
+            onClick={() => setLightboxOpen(true)}
           />
           <div>
             <a href="/profile" className="font-bold text-sm flex items-center gap-1.5 hover:text-[#e94560] transition-colors">
@@ -247,21 +247,13 @@ export default function RoomPage() {
       {showDesktop && <PCDesktopOverlay onClose={() => setShowDesktop(false)} />}
 
       {profile && (
-        <CharacterDetailModal
-          open={detailOpen}
-          onClose={() => setDetailOpen(false)}
-          isOwnProfile
-          data={{
-            displayName: profile.displayName,
-            level: profile.level,
-            exp: profile.exp,
-            isAdmin: profile.isAdmin,
-            profileIconUrl: profile.profileIconUrl,
-            portraitUrl: profile.portraitUrl,
-            title: profile.title,
-            config: avatarConfig,
-            items,
-          }}
+        <ImageLightbox
+          open={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+          imageUrl={profile.profileIconUrl}
+          alt={profile.displayName}
+          fallbackConfig={avatarConfig}
+          fallbackItems={items}
         />
       )}
     </div>
