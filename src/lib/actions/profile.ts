@@ -65,6 +65,8 @@ export async function updateProfile(input: {
 
   revalidatePath("/avatar");
   revalidatePath("/room");
+  revalidatePath("/profile");
+  revalidatePath("/friends");
   return { success: true, profile };
 }
 

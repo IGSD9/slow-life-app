@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { Pencil, Settings, Check, X } from "lucide-react";
 import { AvatarRenderer } from "@/components/avatar/AvatarRenderer";
 import { LevelBar } from "@/components/ui/LevelBar";
 import { Button } from "@/components/ui/Button";
@@ -16,7 +17,6 @@ interface AffinityEntry {
 
 interface ProfileData {
   id: string;
-  email: string;
   profile: {
     displayName: string;
     level: number;
@@ -34,6 +34,10 @@ interface ProfileData {
 export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [ranking, setRanking] = useState<AffinityEntry[]>([]);
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [pRes, rRes] = await Promise.all([
@@ -58,6 +62,49 @@ export default function ProfilePage() {
     if (res.ok) fetchData();
   };
 
+  const startEditName = () => {
+    if (!profile) return;
+    setNameInput(profile.profile.displayName);
+    setNameError("");
+    setEditingName(true);
+  };
+
+  const cancelEditName = () => {
+    setEditingName(false);
+    setNameError("");
+  };
+
+  const saveName = async () => {
+    const trimmed = nameInput.trim();
+    if (!trimmed) {
+      setNameError("名前を入力してください");
+      return;
+    }
+    if (trimmed.length > 20) {
+      setNameError("20文字以内で入力してください");
+      return;
+    }
+
+    setSavingName(true);
+    setNameError("");
+    const res = await fetch("/api/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ displayName: trimmed }),
+    });
+    setSavingName(false);
+
+    if (res.ok) {
+      setEditingName(false);
+      fetchData();
+    } else {
+      const result = await res.json();
+      setNameError(
+        result.error === "INVALID_NAME" ? "1〜20文字で入力してください" : "保存に失敗しました",
+      );
+    }
+  };
+
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -72,19 +119,59 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full pb-24">
-      <h1 className="text-lg font-bold text-[#e94560]">プロフィール</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-bold text-[#e94560]">プロフィール</h1>
+        <Link href="/settings">
+          <Button size="sm" variant="secondary" className="gap-1.5">
+            <Settings size={14} />
+            個人設定
+          </Button>
+        </Link>
+      </div>
 
       <div className="flex flex-col items-center gap-3 bg-[#0f0f1a] rounded-xl border border-[#e94560]/20 p-6">
         <AvatarRenderer config={config} items={items} size={96} />
-        <div className="text-center">
-          <h2 className="font-bold text-lg flex items-center justify-center gap-1.5">
-            {p.displayName}
-            {p.isAdmin && (
-              <span className="text-xs text-[#e94560]">[管理者]</span>
-            )}
-          </h2>
-          {p.title && <p className="text-sm text-yellow-400">{p.title.name}</p>}
-          <p className="text-xs text-gray-500 mt-1">{profile.email}</p>
+        <div className="text-center w-full max-w-xs">
+          {editingName ? (
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                maxLength={20}
+                autoFocus
+                className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-[#e94560]/40 text-white text-center font-bold outline-none focus:border-[#e94560]"
+              />
+              {nameError && <p className="text-xs text-red-400">{nameError}</p>}
+              <div className="flex gap-2 justify-center">
+                <Button size="sm" onClick={saveName} disabled={savingName} className="gap-1">
+                  <Check size={14} />
+                  {savingName ? "保存中..." : "保存"}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={cancelEditName} className="gap-1">
+                  <X size={14} />
+                  キャンセル
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2">
+              <h2 className="font-bold text-lg flex items-center gap-1.5">
+                {p.displayName}
+                {p.isAdmin && (
+                  <span className="text-xs text-[#e94560]">[管理者]</span>
+                )}
+              </h2>
+              <button
+                onClick={startEditName}
+                className="p-1.5 rounded-md text-gray-400 hover:text-[#e94560] hover:bg-[#e94560]/10 transition-colors"
+                aria-label="名前を編集"
+              >
+                <Pencil size={14} />
+              </button>
+            </div>
+          )}
+          {p.title && <p className="text-sm text-yellow-400 mt-1">{p.title.name}</p>}
         </div>
         <div className="w-full max-w-xs">
           <LevelBar level={p.level} exp={p.exp} />
@@ -116,35 +203,35 @@ export default function ProfilePage() {
         {!p.showAffinityRank ? (
           <p className="text-sm text-gray-500 text-center py-4">非公開設定中</p>
         ) : ranking.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4">
-              フレンドがいません
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {ranking.map((r, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between bg-[#0f0f1a] rounded-lg border border-[#e94560]/20 p-3"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#e94560] font-bold w-5">
-                      {i + 1}
-                    </span>
-                    <div>
-                      <p className="text-sm font-bold">{r.displayName}</p>
-                      {r.title && (
-                        <p className="text-[10px] text-yellow-400">{r.title}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-[#e94560]">{r.affinity}</p>
-                    <p className="text-[10px] text-gray-500">Lv.{r.level}</p>
+          <p className="text-sm text-gray-500 text-center py-4">
+            フレンドがいません
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {ranking.map((r, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between bg-[#0f0f1a] rounded-lg border border-[#e94560]/20 p-3"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[#e94560] font-bold w-5">
+                    {i + 1}
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold">{r.displayName}</p>
+                    {r.title && (
+                      <p className="text-[10px] text-yellow-400">{r.title}</p>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="text-right">
+                  <p className="text-sm text-[#e94560]">{r.affinity}</p>
+                  <p className="text-[10px] text-gray-500">Lv.{r.level}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

@@ -53,13 +53,17 @@ export default function SignupPage() {
         <div className="bg-[#1a1a2e] rounded-lg border border-yellow-500/30 p-3 mb-4 text-left">
           <p className="text-xs text-yellow-400 font-bold mb-1">⚠️ 重要</p>
           <p className="text-xs text-gray-400 leading-relaxed">
-            確認メールのリンクは
-            <span className="text-white font-medium"> パソコン（開発中のPC）のブラウザ </span>
-            で開いてください。スマホでは「サーバに接続できません」と表示されます。
+            届くのは <span className="text-white font-medium">Supabase からの確認メール</span>
+            です。GitHub からのメール（CI の通知）は登録確認ではありません。
+          </p>
+          <p className="text-xs text-gray-400 leading-relaxed mt-2">
+            確認リンクは
+            <span className="text-white font-medium"> PC のブラウザ </span>
+            で開いてください。
           </p>
         </div>
         <p className="text-xs text-gray-500 mb-4">
-          開発中は Supabase でメール確認を OFF にすると、すぐログインできます。
+          メールが来ない場合は迷惑メールを確認するか、Supabase でメール確認を OFF にしてください。
         </p>
         <Link href="/login">
           <Button>ログイン画面へ</Button>

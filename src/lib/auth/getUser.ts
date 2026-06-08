@@ -15,7 +15,16 @@ export async function getAuthUser() {
 
 export async function ensureUserSetup(userId: string, email: string) {
   const existing = await prisma.user.findUnique({ where: { id: userId } });
-  if (existing) return existing;
+  if (existing) {
+    if (existing.email.toLowerCase() !== email.toLowerCase()) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { email },
+      });
+      return { ...existing, email };
+    }
+    return existing;
+  }
 
   const pcItem = await prisma.itemMaster.findFirst({
     where: { spriteKey: "furniture_pc_01" },

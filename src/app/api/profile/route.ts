@@ -6,7 +6,8 @@ export async function GET() {
   if (!profile) {
     return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
   }
-  return NextResponse.json(profile);
+  const { email: _email, ...safeProfile } = profile;
+  return NextResponse.json(safeProfile);
 }
 
 export async function POST(request: Request) {

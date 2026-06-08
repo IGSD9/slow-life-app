@@ -140,7 +140,6 @@ export default function FriendsPage() {
               >
                 <div>
                   <p className="text-sm font-bold">{r.displayName}</p>
-                  <p className="text-[10px] text-gray-500">{r.email}</p>
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" onClick={() => respond("accept", r.friendshipId)}>
