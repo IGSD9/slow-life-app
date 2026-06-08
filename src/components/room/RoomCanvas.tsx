@@ -28,8 +28,6 @@ import {
   screenToGrid,
   tileFootY,
   ISO_BLOCK_H,
-  ISO_TILE_H,
-  ISO_TILE_W,
   ISO_WALL_LAYERS,
 } from "@/lib/isometric";
 import type { AvatarConfig } from "@/types/avatar";
@@ -201,20 +199,18 @@ export function RoomCanvas({
       );
     }
 
-    const wallSegments: { x: number; y: number; key: number; window: boolean }[] = [];
+    const wallSegments: { x: number; y: number; key: number; window: boolean; edge: "back" | "left" }[] = [];
     for (let x = 1; x < GRID_WIDTH - 1; x++) {
-      wallSegments.push({ x, y: 1, key: depthKey(x, 0.5), window: x % 3 === 1 });
+      wallSegments.push({ x, y: 0, key: depthKey(x, 0), window: x % 3 === 1, edge: "back" });
     }
     for (let y = 1; y < GRID_HEIGHT; y++) {
-      wallSegments.push({ x: 1, y, key: depthKey(0.5, y), window: false });
+      wallSegments.push({ x: 0, y, key: depthKey(0, y), window: false, edge: "left" });
     }
     wallSegments.sort((a, b) => a.key - b.key);
-    for (const { x, y, window } of wallSegments) {
+    for (const { x, y, window, edge } of wallSegments) {
       const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT, 0);
-      const isBack = y === 1;
-      const wallSx = isBack ? sx : sx - ISO_TILE_W / 2;
-      const wallSy = isBack ? sy - ISO_TILE_H / 2 : sy;
-      drawIsoPatternWall(ctx, wallSx, wallSy, wallColor, ISO_WALL_LAYERS, isBack && window);
+      const isRightEnd = edge === "back" && x === GRID_WIDTH - 2;
+      drawIsoPatternWall(ctx, sx, sy, wallColor, ISO_WALL_LAYERS, window, isRightEnd);
     }
 
     if (isEditing) {

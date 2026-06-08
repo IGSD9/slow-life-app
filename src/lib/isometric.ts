@@ -152,6 +152,7 @@ export function drawIsoPatternWall(
   color: string,
   layers: number,
   withWindow = false,
+  clipRightEdge = false,
 ) {
   drawIsoBlock(ctx, sx, sy, color, layers);
 
@@ -159,6 +160,7 @@ export function drawIsoPatternWall(
   const hh = ISO_TILE_H / 2;
   const baseY = sy + hh;
   const h = ISO_BLOCK_H * layers;
+  const lineRight = clipRightEdge ? sx + hw * 0.15 : sx + hw * 0.7;
 
   ctx.save();
   ctx.strokeStyle = shade(color, 40);
@@ -167,7 +169,7 @@ export function drawIsoPatternWall(
     const oy = baseY - h + 8 + i * 10;
     ctx.beginPath();
     ctx.moveTo(sx - hw * 0.7, oy);
-    ctx.lineTo(sx + hw * 0.7, oy + 4);
+    ctx.lineTo(lineRight, oy + 4);
     ctx.stroke();
   }
 
@@ -291,9 +293,13 @@ export function drawPlatformBase(
   gridH: number,
   color: string,
 ) {
-  const backLeft = gridToScreen(-0.5, -0.5, gridW, gridH, 0);
-  const backRight = gridToScreen(gridW - 0.5, -0.5, gridW, gridH, 0);
-  const frontLeft = gridToScreen(-0.5, gridH - 0.5, gridW, gridH, 0);
+  const floorMinX = 1;
+  const floorMaxX = gridW - 2;
+  const floorMinY = 1;
+  const floorMaxY = gridH - 1;
+  const backLeft = gridToScreen(floorMinX - 0.5, floorMinY - 0.5, gridW, gridH, 0);
+  const backRight = gridToScreen(floorMaxX + 0.5, floorMinY - 0.5, gridW, gridH, 0);
+  const frontLeft = gridToScreen(floorMinX - 0.5, floorMaxY + 0.5, gridW, gridH, 0);
 
   const baseLayers = 2;
   const rimDepth = 5;
