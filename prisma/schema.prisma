@@ -34,6 +34,8 @@ model Profile {
   level            Int      @default(1)
   exp              Int      @default(0)
   avatarConfig     Json     @default("{}")
+  profileIconUrl   String?
+  portraitUrl      String?
   showAffinityRank Boolean  @default(true)
   isAdmin          Boolean  @default(false)
   coins            Int      @default(500)

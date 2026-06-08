@@ -128,6 +128,7 @@ export async function getFriendsData() {
       affinity: f.affinity,
       isAdmin: f.friend.profile?.isAdmin ?? false,
       title: f.friend.profile?.title?.name,
+      profileIconUrl: f.friend.profile?.profileIconUrl ?? null,
       isMarried: f.isMarried,
       marriageProposalFrom: f.marriageProposalFrom,
     })),

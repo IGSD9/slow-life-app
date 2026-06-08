@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Pencil, Settings, Check, X } from "lucide-react";
-import { AvatarRenderer } from "@/components/avatar/AvatarRenderer";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { CharacterDetailModal } from "@/components/profile/CharacterDetailModal";
 import { LevelBar } from "@/components/ui/LevelBar";
 import { Button } from "@/components/ui/Button";
+import { useProfileImageUpload } from "@/hooks/useProfileImageUpload";
 import type { AvatarConfig } from "@/types/avatar";
 
 interface AffinityEntry {
@@ -32,6 +34,8 @@ interface ProfileData {
     coins: number;
     gems: number;
     avatarConfig: AvatarConfig;
+    profileIconUrl?: string | null;
+    portraitUrl?: string | null;
     title: { id: string; name: string } | null;
   };
   ownedTitles: OwnedTitle[];
@@ -46,6 +50,7 @@ export default function ProfilePage() {
   const [nameError, setNameError] = useState("");
   const [savingName, setSavingName] = useState(false);
   const [savingTitle, setSavingTitle] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [pRes, rRes] = await Promise.all([
@@ -59,6 +64,8 @@ export default function ProfilePage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const { upload, uploading, error: uploadError } = useProfileImageUpload(fetchData);
 
   const toggleRanking = async () => {
     if (!profile) return;
@@ -151,7 +158,22 @@ export default function ProfilePage() {
       </div>
 
       <div className="flex flex-col items-center gap-3 bg-[#0f0f1a] rounded-xl border border-[#e94560]/20 p-6">
-        <AvatarRenderer config={config} items={items} size={96} />
+        <ProfileAvatar
+          profileIconUrl={p.profileIconUrl}
+          config={config}
+          items={items}
+          size={96}
+          editable
+          uploading={uploading === "icon"}
+          onUpload={(file) => upload("icon", file)}
+          onClick={() => setDetailOpen(true)}
+        />
+        <p className="text-[10px] text-gray-500 -mt-1">
+          タップで詳細 · カメラでアイコン変更
+        </p>
+        {uploadError && (
+          <p className="text-xs text-red-400 text-center">{uploadError}</p>
+        )}
         <div className="text-center w-full max-w-xs">
           {editingName ? (
             <div className="space-y-2">
@@ -279,6 +301,27 @@ export default function ProfilePage() {
           </div>
         )}
       </section>
+
+      <CharacterDetailModal
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        isOwnProfile
+        onPortraitUpload={(file) => upload("portrait", file)}
+        uploadingPortrait={uploading === "portrait"}
+        data={{
+          displayName: p.displayName,
+          level: p.level,
+          exp: p.exp,
+          isAdmin: p.isAdmin,
+          profileIconUrl: p.profileIconUrl,
+          portraitUrl: p.portraitUrl,
+          title: p.title,
+          coins: p.coins,
+          gems: p.gems,
+          config,
+          items,
+        }}
+      />
     </div>
   );
 }

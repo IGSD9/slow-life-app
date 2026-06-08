@@ -4,7 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { UserPlus, Users, Circle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import {
+  CharacterDetailModal,
+  type CharacterDetailData,
+} from "@/components/profile/CharacterDetailModal";
 import { usePresence } from "@/hooks/usePresence";
+import type { AvatarConfig } from "@/types/avatar";
 
 interface FriendEntry {
   friendshipId: string;
@@ -14,6 +20,7 @@ interface FriendEntry {
   affinity: number;
   isAdmin: boolean;
   title?: string;
+  profileIconUrl?: string | null;
   isMarried: boolean;
   marriageProposalFrom: string | null;
 }
@@ -37,8 +44,28 @@ export default function FriendsPage() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [friendDetail, setFriendDetail] = useState<CharacterDetailData | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const { isOnline } = usePresence(data?.me.id ?? null);
+
+  const openFriendDetail = async (userId: string) => {
+    const res = await fetch(`/api/profile/${userId}`);
+    if (!res.ok) return;
+    const p = await res.json();
+    setFriendDetail({
+      displayName: p.displayName,
+      level: p.level,
+      exp: p.exp,
+      isAdmin: p.isAdmin,
+      profileIconUrl: p.profileIconUrl,
+      portraitUrl: p.portraitUrl,
+      title: p.title,
+      config: (p.avatarConfig ?? {}) as AvatarConfig,
+      items: p.inventory?.map((inv: { item: { id: string; spriteKey: string; name: string } }) => inv.item) ?? [],
+    });
+    setDetailOpen(true);
+  };
 
   const fetchFriends = useCallback(async () => {
     const res = await fetch("/api/friends");
@@ -193,6 +220,13 @@ export default function FriendsPage() {
                     size={8}
                     className={isOnline(f.userId) ? "text-green-400 fill-green-400" : "text-gray-600 fill-gray-600"}
                   />
+                  <ProfileAvatar
+                    profileIconUrl={f.profileIconUrl}
+                    config={{}}
+                    items={[]}
+                    size={36}
+                    onClick={() => openFriendDetail(f.userId)}
+                  />
                   <div>
                     <p className="text-sm font-bold flex items-center gap-1">
                       {f.displayName}
@@ -236,6 +270,14 @@ export default function FriendsPage() {
           </div>
         )}
       </section>
+
+      {friendDetail && (
+        <CharacterDetailModal
+          open={detailOpen}
+          onClose={() => setDetailOpen(false)}
+          data={friendDetail}
+        />
+      )}
     </div>
   );
 }

@@ -9,7 +9,8 @@ import { PCProximityPrompt } from "@/components/room/PCProximityPrompt";
 import { PCDesktopOverlay } from "@/components/room/PCDesktopOverlay";
 import { LevelBar } from "@/components/ui/LevelBar";
 import { Button } from "@/components/ui/Button";
-import { AvatarRenderer } from "@/components/avatar/AvatarRenderer";
+import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
+import { CharacterDetailModal } from "@/components/profile/CharacterDetailModal";
 import { AdminPanel } from "@/components/admin/AdminPanel";
 import { IncomingTrades } from "@/components/social/IncomingTrades";
 import { useRoomSync } from "@/hooks/useRoomSync";
@@ -21,6 +22,8 @@ interface ProfileData {
   level: number;
   exp: number;
   avatarConfig: AvatarConfig;
+  profileIconUrl?: string | null;
+  portraitUrl?: string | null;
   isAdmin: boolean;
   title: { name: string } | null;
 }
@@ -58,6 +61,7 @@ export default function RoomPage() {
   const [layout, setLayout] = useState<RoomLayout>([]);
   const [wallpaperId, setWallpaperId] = useState("wall_default");
   const [floorId, setFloorId] = useState("floor_default");
+  const [detailOpen, setDetailOpen] = useState(false);
 
   const fetchRoom = useCallback(async () => {
     const res = await fetch("/api/room");
@@ -146,7 +150,13 @@ export default function RoomPage() {
     <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <AvatarRenderer config={avatarConfig} items={items} size={40} />
+          <ProfileAvatar
+            profileIconUrl={profile?.profileIconUrl}
+            config={avatarConfig}
+            items={items}
+            size={40}
+            onClick={() => setDetailOpen(true)}
+          />
           <div>
             <a href="/profile" className="font-bold text-sm flex items-center gap-1.5 hover:text-[#e94560] transition-colors">
               {profile?.displayName ?? "プレイヤー"}
@@ -235,6 +245,25 @@ export default function RoomPage() {
       )}
 
       {showDesktop && <PCDesktopOverlay onClose={() => setShowDesktop(false)} />}
+
+      {profile && (
+        <CharacterDetailModal
+          open={detailOpen}
+          onClose={() => setDetailOpen(false)}
+          isOwnProfile
+          data={{
+            displayName: profile.displayName,
+            level: profile.level,
+            exp: profile.exp,
+            isAdmin: profile.isAdmin,
+            profileIconUrl: profile.profileIconUrl,
+            portraitUrl: profile.portraitUrl,
+            title: profile.title,
+            config: avatarConfig,
+            items,
+          }}
+        />
+      )}
     </div>
   );
 }
