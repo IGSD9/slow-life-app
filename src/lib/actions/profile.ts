@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 import { getAuthUser, ensureUserSetup } from "@/lib/auth/getUser";
 import { calculateLevel, clampExp } from "@/lib/level";
+import { getOwnedTitles, grantTitle, setEquippedTitle } from "@/lib/actions/title";
 import type { AvatarConfig } from "@/types/avatar";
 
 export async function getProfile() {
@@ -13,7 +14,7 @@ export async function getProfile() {
 
   await ensureUserSetup(authUser.id, authUser.email);
 
-  return prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: authUser.id },
     include: {
       profile: { include: { title: true } },
@@ -21,12 +22,22 @@ export async function getProfile() {
       inventory: { include: { item: true } },
     },
   });
+  if (!user) return null;
+
+  // 装備中の称号を所持データに同期（移行用）
+  if (user.profile?.titleId) {
+    await grantTitle(user.id, user.profile.titleId);
+  }
+
+  const ownedTitles = await getOwnedTitles(user.id);
+  return { ...user, ownedTitles };
 }
 
 export async function updateProfile(input: {
   displayName?: string;
   avatarConfig?: AvatarConfig;
   showAffinityRank?: boolean;
+  equippedTitleId?: string | null;
 }) {
   const authUser = await getAuthUser();
   if (!authUser?.email) return { success: false, error: "UNAUTHORIZED" };
@@ -49,6 +60,13 @@ export async function updateProfile(input: {
       if (itemId && !ownedIds.has(itemId)) {
         return { success: false, error: "NOT_OWNER" };
       }
+    }
+  }
+
+  if (input.equippedTitleId !== undefined) {
+    const titleResult = await setEquippedTitle(authUser.id, input.equippedTitleId);
+    if (!titleResult.success) {
+      return { success: false, error: titleResult.error };
     }
   }
 
@@ -93,7 +111,7 @@ export async function grantExp(amount: number) {
     for (let lv = oldLevel + 1; lv <= newLevel; lv++) {
       const reward = await prisma.levelReward.findUnique({
         where: { level: lv },
-        include: { item: true },
+        include: { item: true, title: true },
       });
       if (!reward) continue;
 
@@ -107,6 +125,9 @@ export async function grantExp(amount: number) {
         create: { userId: authUser.id, itemId: reward.itemId },
         update: { quantity: { increment: 1 } },
       });
+      if (reward.titleId) {
+        await grantTitle(authUser.id, reward.titleId);
+      }
       await prisma.levelRewardClaim.create({
         data: { userId: authUser.id, level: lv },
       });

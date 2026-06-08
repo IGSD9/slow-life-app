@@ -22,6 +22,7 @@ model User {
   missions            MissionProgress[]
   transactions        Transaction[]
   levelRewards        LevelRewardClaim[]
+  userTitles          UserTitle[]
 }
 
 model Profile {
@@ -157,6 +158,20 @@ model Title {
 
   profiles     Profile[]
   levelRewards LevelReward[]
+  userTitles   UserTitle[]
+}
+
+model UserTitle {
+  id         String   @id @default(cuid())
+  userId     String
+  titleId    String
+  acquiredAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title Title @relation(fields: [titleId], references: [id])
+
+  @@unique([userId, titleId])
+  @@index([userId])
 }
 
 enum MissionType {

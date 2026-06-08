@@ -3,9 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser, ensureUserSetup } from "@/lib/auth/getUser";
-import { MARRIAGE_AFFINITY_THRESHOLD } from "@/lib/constants";
-
-const MARRIED_TITLE_ID = "title_married";
+import { MARRIAGE_AFFINITY_THRESHOLD, MARRIED_TITLE_ID } from "@/lib/constants";
+import { grantTitle } from "@/lib/actions/title";
 
 async function getMe() {
   const authUser = await getAuthUser();
@@ -60,7 +59,6 @@ export async function acceptMarriage(partnerId: string) {
     return { success: false, error: "NO_PROPOSAL" };
   }
 
-  const marriedTitle = await prisma.title.findUnique({ where: { id: MARRIED_TITLE_ID } });
   const now = new Date();
 
   await prisma.$transaction(async (tx) => {
@@ -72,17 +70,11 @@ export async function acceptMarriage(partnerId: string) {
       where: { userId: partnerId, friendId: me.id },
       data: { isMarried: true, marriedAt: now, marriageProposalFrom: null },
     });
-    if (marriedTitle) {
-      await tx.profile.update({
-        where: { userId: me.id },
-        data: { titleId: MARRIED_TITLE_ID },
-      });
-      await tx.profile.update({
-        where: { userId: partnerId },
-        data: { titleId: MARRIED_TITLE_ID },
-      });
-    }
   });
+
+  // 称号を獲得（装備はプロフィールからユーザーが選択）
+  await grantTitle(me.id, MARRIED_TITLE_ID);
+  await grantTitle(partnerId, MARRIED_TITLE_ID);
 
   const ring = await prisma.itemMaster.findUnique({ where: { id: "clothing_accessory_ring" } });
   if (ring) {

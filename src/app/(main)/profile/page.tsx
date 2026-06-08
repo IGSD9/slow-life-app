@@ -15,6 +15,12 @@ interface AffinityEntry {
   title?: string;
 }
 
+interface OwnedTitle {
+  id: string;
+  name: string;
+  description?: string | null;
+}
+
 interface ProfileData {
   id: string;
   profile: {
@@ -26,8 +32,9 @@ interface ProfileData {
     coins: number;
     gems: number;
     avatarConfig: AvatarConfig;
-    title: { name: string } | null;
+    title: { id: string; name: string } | null;
   };
+  ownedTitles: OwnedTitle[];
   inventory: { item: { id: string; name: string; spriteKey: string } }[];
 }
 
@@ -38,6 +45,7 @@ export default function ProfilePage() {
   const [nameInput, setNameInput] = useState("");
   const [nameError, setNameError] = useState("");
   const [savingName, setSavingName] = useState(false);
+  const [savingTitle, setSavingTitle] = useState(false);
 
   const fetchData = useCallback(async () => {
     const [pRes, rRes] = await Promise.all([
@@ -72,6 +80,19 @@ export default function ProfilePage() {
   const cancelEditName = () => {
     setEditingName(false);
     setNameError("");
+  };
+
+  const changeEquippedTitle = async (titleId: string) => {
+    setSavingTitle(true);
+    const res = await fetch("/api/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        equippedTitleId: titleId === "" ? null : titleId,
+      }),
+    });
+    setSavingTitle(false);
+    if (res.ok) fetchData();
   };
 
   const saveName = async () => {
@@ -171,8 +192,33 @@ export default function ProfilePage() {
               </button>
             </div>
           )}
-          {p.title && <p className="text-sm text-yellow-400 mt-1">{p.title.name}</p>}
+          {p.title && (
+            <p className="text-sm text-yellow-400 mt-1">{p.title.name}</p>
+          )}
         </div>
+
+        {profile.ownedTitles.length > 0 && (
+          <div className="w-full max-w-xs space-y-1.5">
+            <label className="text-xs text-gray-400 block">表示する称号</label>
+            <select
+              value={p.title?.id ?? ""}
+              onChange={(e) => changeEquippedTitle(e.target.value)}
+              disabled={savingTitle}
+              className="w-full px-3 py-2 rounded-lg bg-[#1a1a2e] border border-[#e94560]/20 text-white text-sm outline-none focus:border-[#e94560] disabled:opacity-50"
+            >
+              <option value="">なし</option>
+              {profile.ownedTitles.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-[10px] text-gray-500">
+              獲得した称号から選んでプロフィールに表示できます
+            </p>
+          </div>
+        )}
+
         <div className="w-full max-w-xs">
           <LevelBar level={p.level} exp={p.exp} />
         </div>

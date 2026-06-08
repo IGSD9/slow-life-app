@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { calculateLevel } from "@/lib/level";
-
-const ADMIN_TITLE_ID = "title_admin";
+import { ADMIN_TITLE_ID } from "@/lib/constants";
 
 export function getAdminEmails(): string[] {
   const raw = process.env.ADMIN_EMAILS ?? "";
@@ -20,15 +19,14 @@ export async function syncAdminPrivileges(userId: string, email: string) {
   if (!isAdminEmail(email)) return false;
 
   const allItems = await prisma.itemMaster.findMany();
-  const adminTitle = await prisma.title.findUnique({
-    where: { id: ADMIN_TITLE_ID },
-  });
+  const profile = await prisma.profile.findUnique({ where: { userId } });
 
   await prisma.profile.update({
     where: { userId },
     data: {
       isAdmin: true,
-      ...(adminTitle ? { titleId: ADMIN_TITLE_ID } : {}),
+      // 管理者は称号ではなく [管理者] バッジのみ表示
+      ...(profile?.titleId === ADMIN_TITLE_ID ? { titleId: null } : {}),
     },
   });
 
