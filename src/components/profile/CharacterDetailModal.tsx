@@ -1,8 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { X, Camera, Sparkles } from "lucide-react";
-import { AvatarRenderer } from "@/components/avatar/AvatarRenderer";
+import {
+  AvatarDetailLightbox,
+  InGameAvatarPreview,
+} from "@/components/profile/AvatarDetailLightbox";
 import { LevelBar } from "@/components/ui/LevelBar";
 import { Button } from "@/components/ui/Button";
 import type { AvatarConfig } from "@/types/avatar";
@@ -49,6 +53,8 @@ export function CharacterDetailModal({
   onPortraitPick,
   uploadingPortrait = false,
 }: CharacterDetailModalProps) {
+  const [avatarZoomOpen, setAvatarZoomOpen] = useState(false);
+
   if (!open) return null;
 
   const hqSrc = data.portraitUrl ?? data.profileIconUrl;
@@ -97,14 +103,13 @@ export function CharacterDetailModal({
             </div>
           )}
 
-          {/* ゲーム内ドット絵（コーナー） */}
-          <div className="absolute bottom-3 left-3 flex items-end gap-2">
-            <div className="rounded-lg border-2 border-white/80 bg-[#1a1a2e]/90 p-1 shadow-lg">
-              <AvatarRenderer config={data.config} items={data.items} size={56} />
-            </div>
-            <span className="text-[10px] text-white drop-shadow-md font-bold mb-1">
-              ゲーム内の姿
-            </span>
+          {/* ゲーム内ドット絵（タップで拡大） */}
+          <div className="absolute bottom-3 left-3">
+            <InGameAvatarPreview
+              config={data.config}
+              items={data.items}
+              onClick={() => setAvatarZoomOpen(true)}
+            />
           </div>
 
           {isOwnProfile && onPortraitPick && (
@@ -161,6 +166,14 @@ export function CharacterDetailModal({
           )}
         </div>
       </div>
+
+      <AvatarDetailLightbox
+        open={avatarZoomOpen}
+        onClose={() => setAvatarZoomOpen(false)}
+        displayName={data.displayName}
+        config={data.config}
+        items={data.items}
+      />
     </div>
   );
 }
