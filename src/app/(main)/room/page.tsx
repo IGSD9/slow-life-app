@@ -155,7 +155,7 @@ export default function RoomPage() {
   const items = room.user.inventory.map((i) => i.item);
 
   return (
-    <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full">
+    <div className="flex flex-col gap-2 sm:gap-3 p-2 sm:p-4 max-w-3xl mx-auto w-full pb-24">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <ProfileAvatar
@@ -189,7 +189,7 @@ export default function RoomPage() {
         </Button>
       </header>
 
-      <div className="relative">
+      <div className="relative w-full">
         <RoomCanvas
           layout={layout}
           items={items}

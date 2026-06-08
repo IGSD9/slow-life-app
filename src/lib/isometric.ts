@@ -1,8 +1,8 @@
 /** アイソメトリック（2:1）座標変換・ボクセル描画 */
 
-export const ISO_TILE_W = 28;
-export const ISO_TILE_H = 14;
-export const ISO_BLOCK_H = 12;
+export const ISO_TILE_W = 40;
+export const ISO_TILE_H = 20;
+export const ISO_BLOCK_H = 17;
 export const ISO_WALL_LAYERS = 6;
 
 /** 中央の段差付きウッドデッキ（参考: ハウジングカスタム） */
@@ -37,8 +37,8 @@ export interface GridPos {
 
 export function computeOrigin(gridW: number, gridH: number): IsoPoint {
   return {
-    x: gridH * (ISO_TILE_W / 2) + 24,
-    y: ISO_WALL_LAYERS * ISO_BLOCK_H + 48,
+    x: gridH * (ISO_TILE_W / 2) + 16,
+    y: ISO_WALL_LAYERS * ISO_BLOCK_H + 32,
   };
 }
 
@@ -76,8 +76,8 @@ export function screenToGrid(
 
 export function canvasSize(gridW: number, gridH: number) {
   const origin = computeOrigin(gridW, gridH);
-  const w = origin.x + gridW * (ISO_TILE_W / 2) + 40;
-  const h = origin.y + (gridW + gridH) * (ISO_TILE_H / 2) + ISO_WALL_LAYERS * ISO_BLOCK_H + 60;
+  const w = origin.x + gridW * (ISO_TILE_W / 2) + 24;
+  const h = origin.y + (gridW + gridH) * (ISO_TILE_H / 2) + ISO_WALL_LAYERS * ISO_BLOCK_H + 28;
   return { width: Math.ceil(w), height: Math.ceil(h) };
 }
 

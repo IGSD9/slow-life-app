@@ -115,7 +115,7 @@ export default function VisitRoomPage() {
   const hostAvatar = (hostProfile?.avatarConfig ?? {}) as AvatarConfig;
 
   return (
-    <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full">
+    <div className="flex flex-col gap-2 sm:gap-3 p-2 sm:p-4 max-w-3xl mx-auto w-full pb-24">
       <div className="flex items-center gap-2">
         <Link href="/friends">
           <Button variant="ghost" size="sm">

@@ -116,13 +116,35 @@ export function RoomCanvas({
   onPlayerMove,
 }: RoomCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [internalPos, setInternalPos] = useState({ gridX: 8, gridY: 8 });
   const [internalDir, setInternalDir] = useState<Direction>("down");
   const [hoverCell, setHoverCell] = useState<{ gridX: number; gridY: number } | null>(null);
   const playerPos = controlledPos ?? internalPos;
   const direction = controlledDirection ?? internalDir;
   const itemMap = new Map(items.map((i) => [i.id, i]));
-  const { width: CW, height: CH } = canvasSize(GRID_WIDTH, GRID_HEIGHT);
+  const baseSize = canvasSize(GRID_WIDTH, GRID_HEIGHT);
+  const [displaySize, setDisplaySize] = useState(baseSize);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const w = el.clientWidth;
+      if (w <= 0) return;
+      const scale = w / baseSize.width;
+      setDisplaySize({
+        width: Math.round(w),
+        height: Math.round(baseSize.height * scale),
+      });
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [baseSize.width, baseSize.height]);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -130,10 +152,17 @@ export function RoomCanvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.clearRect(0, 0, CW, CH);
-    ctx.imageSmoothingEnabled = false;
+    const { width: DW, height: DH } = displaySize;
+    const { width: BW, height: BH } = baseSize;
+    const scaleX = DW / BW;
+    const scaleY = DH / BH;
 
-    drawSkyBackground(ctx, CW, CH);
+    ctx.clearRect(0, 0, DW, DH);
+    ctx.imageSmoothingEnabled = false;
+    ctx.save();
+    ctx.scale(scaleX, scaleY);
+
+    drawSkyBackground(ctx, BW, BH);
 
     const floorColor = FLOOR[floorId] ?? "#c49a6c";
     const deckColor = DECK_FLOOR[floorId] ?? "#d4aa78";
@@ -293,9 +322,11 @@ export function RoomCanvas({
     ctx.font = "9px monospace";
     ctx.textAlign = "center";
     ctx.fillText(arrow, px, py - ISO_BLOCK_H * 3.8);
+
+    ctx.restore();
   }, [
-    CW,
-    CH,
+    baseSize,
+    displaySize,
     layout,
     itemMap,
     wallpaperId,
@@ -420,13 +451,16 @@ export function RoomCanvas({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-xl border-2 border-[#7ec8e8]/50 shadow-lg shadow-[#7ec8e8]/20">
+    <div
+      ref={containerRef}
+      className="relative w-full overflow-hidden rounded-xl border-2 border-[#7ec8e8]/50 shadow-lg shadow-[#7ec8e8]/20"
+    >
       <canvas
         ref={canvasRef}
-        width={CW}
-        height={CH}
-        className="w-full cursor-pointer"
-        style={{ imageRendering: "pixelated", maxWidth: "100%" }}
+        width={displaySize.width}
+        height={displaySize.height}
+        className="w-full h-auto block cursor-pointer"
+        style={{ imageRendering: "pixelated" }}
         onClick={(e) => handlePointer(e.clientX, e.clientY)}
         onMouseMove={(e) => {
           if (!isEditing) return;
