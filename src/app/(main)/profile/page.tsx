@@ -182,7 +182,7 @@ export default function ProfilePage() {
             disabled={uploading === "icon" || editor.saving}
           >
             <Camera size={16} />
-            プロフィール画像を変更
+            {p.profileIconUrl ? "プロフィール画像を変更" : "プロフィール画像を設定"}
           </Button>
           <Button
             size="sm"

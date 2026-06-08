@@ -48,6 +48,11 @@ async function ensureBucket() {
   }
 }
 
+/** 保存先は種類ごとに固定（再アップロードで常に上書き） */
+function fixedStoragePath(userId: string, kind: ProfileImageKind) {
+  return storagePath(userId, kind, "jpg");
+}
+
 export async function uploadProfileImage(
   userId: string,
   kind: ProfileImageKind,
@@ -58,7 +63,11 @@ export async function uploadProfileImage(
 
   await ensureBucket();
   const supabase = createAdminClient();
-  const path = storagePath(userId, kind, validated.ext);
+
+  // 拡張子違いの古いファイルを削除してから上書き
+  await removeProfileImageFiles(userId, kind);
+
+  const path = fixedStoragePath(userId, kind);
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await supabase.storage
@@ -66,11 +75,13 @@ export async function uploadProfileImage(
     .upload(path, buffer, {
       contentType: file.type,
       upsert: true,
-      cacheControl: "3600",
+      cacheControl: "60",
     });
 
   if (error) throw error;
-  return publicUrl(path);
+
+  // 同一URLでもブラウザキャッシュを回避
+  return `${publicUrl(path)}?v=${Date.now()}`;
 }
 
 export async function removeProfileImageFiles(userId: string, kind: ProfileImageKind) {

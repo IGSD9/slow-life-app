@@ -29,6 +29,7 @@ export function ProfileAvatar({
   const inner = profileIconUrl ? (
     // eslint-disable-next-line @next/next/no-img-element
     <img
+      key={profileIconUrl}
       src={profileIconUrl}
       alt=""
       width={size}

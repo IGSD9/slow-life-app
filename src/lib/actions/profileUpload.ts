@@ -20,8 +20,9 @@ export async function uploadProfileImageAction(kind: ProfileImageKind, file: Fil
 
   await ensureUserSetup(authUser.id, authUser.email);
 
+  let url: string;
   try {
-    const url = await uploadProfileImage(authUser.id, kind, file);
+    url = await uploadProfileImage(authUser.id, kind, file);
     await prisma.profile.update({
       where: { userId: authUser.id },
       data: { [FIELD[kind]]: url },
@@ -40,7 +41,7 @@ export async function uploadProfileImageAction(kind: ProfileImageKind, file: Fil
   revalidatePath("/profile");
   revalidatePath("/room");
   revalidatePath("/friends");
-  return { success: true as const };
+  return { success: true as const, url };
 }
 
 export async function removeProfileImageAction(kind: ProfileImageKind) {

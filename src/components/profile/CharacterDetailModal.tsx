@@ -76,6 +76,7 @@ export function CharacterDetailModal({
           {hqSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
+              key={hqSrc}
               src={hqSrc}
               alt={data.displayName}
               className="w-full h-full object-cover object-top"

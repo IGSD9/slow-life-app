@@ -50,6 +50,7 @@ export function ImageLightbox({
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
+            key={imageUrl}
             src={imageUrl}
             alt={alt}
             className="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl"

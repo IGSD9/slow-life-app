@@ -20,7 +20,10 @@ export function useImageEditorUpload(
 
   const openPicker = useCallback((kind: ImageKind) => {
     setPendingKind(kind);
-    inputRef.current?.click();
+    const input = inputRef.current;
+    if (!input) return;
+    input.value = "";
+    input.click();
   }, []);
 
   const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

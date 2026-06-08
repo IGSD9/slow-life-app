@@ -33,7 +33,7 @@ export function useProfileImageUpload(onSuccess?: () => void) {
           setError(data.message ?? ERROR_MESSAGES[data.error] ?? "エラーが発生しました");
           return false;
         }
-        onSuccess?.();
+        await onSuccess?.();
         return true;
       } catch {
         setError("アップロードに失敗しました");
