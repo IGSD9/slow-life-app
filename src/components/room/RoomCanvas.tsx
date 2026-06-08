@@ -7,19 +7,16 @@ import {
   type Direction,
   type RoomLayout,
 } from "@/types/room";
-import type { AvatarConfig } from "@/types/avatar";
 import type { RoomPlayer, RoomStamp } from "@/types/presence";
 import { isNearPC, resolvePCPosition } from "@/lib/roomPc";
 import {
   canvasSize,
   depthKey,
-  DECK_BOUNDS,
-  drawDeckRiser,
   drawIsoBlock,
-  drawIsoCharacter,
   drawIsoFloorTile,
   drawIsoPatternWall,
   drawNameTag,
+  drawPixelCharacter,
   drawPlatformBase,
   drawRoomBoundsOutline,
   drawSkyBackground,
@@ -27,11 +24,15 @@ import {
   gridToScreen,
   isDeckCell,
   isRoomWallCell,
+  resolveCharacterColors,
   screenToGrid,
+  tileFootY,
   ISO_BLOCK_H,
+  ISO_TILE_H,
+  ISO_TILE_W,
   ISO_WALL_LAYERS,
-  shade,
 } from "@/lib/isometric";
+import type { AvatarConfig } from "@/types/avatar";
 
 interface ItemInfo {
   id: string;
@@ -100,6 +101,7 @@ function isWallCell(x: number, y: number): boolean {
 export function RoomCanvas({
   layout,
   items,
+  avatarConfig,
   displayName = "プレイヤー",
   titleName,
   isAdmin = false,
@@ -124,6 +126,7 @@ export function RoomCanvas({
   const playerPos = controlledPos ?? internalPos;
   const direction = controlledDirection ?? internalDir;
   const itemMap = new Map(items.map((i) => [i.id, i]));
+  const spriteById = new Map(items.map((i) => [i.id, i.spriteKey]));
   const baseSize = canvasSize(GRID_WIDTH, GRID_HEIGHT);
   const [displaySize, setDisplaySize] = useState(baseSize);
 
@@ -182,33 +185,6 @@ export function RoomCanvas({
     }
     floorCells.sort((a, b) => a.key - b.key);
 
-    const riserCells: { x: number; y: number; key: number }[] = [];
-    for (let y = DECK_BOUNDS.minY; y <= DECK_BOUNDS.maxY; y++) {
-      for (let x = DECK_BOUNDS.minX; x <= DECK_BOUNDS.maxX; x++) {
-        const adj: [number, number][] = [
-          [x - 1, y],
-          [x + 1, y],
-          [x, y - 1],
-          [x, y + 1],
-        ];
-        for (const [nx, ny] of adj) {
-          if (isDeckCell(x, y) && !isDeckCell(nx, ny) && !isWallCell(nx, ny)) {
-            if (nx >= 1 && nx < GRID_WIDTH - 1 && ny >= 1 && ny < GRID_HEIGHT) {
-              riserCells.push({ x: nx, y: ny, key: depthKey(nx, ny) });
-            }
-          }
-        }
-      }
-    }
-    const seenRisers = new Set<string>();
-    for (const { x, y, key } of riserCells) {
-      const k = `${x},${y}`;
-      if (seenRisers.has(k)) continue;
-      seenRisers.add(k);
-      const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT, 0);
-      drawDeckRiser(ctx, sx, sy, shade(floorColor, -18));
-    }
-
     for (const { x, y, z } of floorCells) {
       const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT, z);
       const isHighlight =
@@ -225,25 +201,20 @@ export function RoomCanvas({
       );
     }
 
-    const wallCells: { x: number; y: number; key: number; layers: number; window: boolean }[] = [];
-    for (let y = 0; y < GRID_HEIGHT; y++) {
-      for (let x = 0; x < GRID_WIDTH; x++) {
-        if (isWallCell(x, y)) {
-          const isBack = y === 0 && x > 0;
-          wallCells.push({
-            x,
-            y,
-            key: depthKey(x, y),
-            layers: ISO_WALL_LAYERS,
-            window: isBack && x % 3 === 1,
-          });
-        }
-      }
+    const wallSegments: { x: number; y: number; key: number; window: boolean }[] = [];
+    for (let x = 1; x < GRID_WIDTH - 1; x++) {
+      wallSegments.push({ x, y: 1, key: depthKey(x, 0.5), window: x % 3 === 1 });
     }
-    wallCells.sort((a, b) => a.key - b.key);
-    for (const { x, y, layers, window } of wallCells) {
+    for (let y = 1; y < GRID_HEIGHT; y++) {
+      wallSegments.push({ x: 1, y, key: depthKey(0.5, y), window: false });
+    }
+    wallSegments.sort((a, b) => a.key - b.key);
+    for (const { x, y, window } of wallSegments) {
       const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT, 0);
-      drawIsoPatternWall(ctx, sx, sy, wallColor, layers, window);
+      const isBack = y === 1;
+      const wallSx = isBack ? sx : sx - ISO_TILE_W / 2;
+      const wallSy = isBack ? sy - ISO_TILE_H / 2 : sy;
+      drawIsoPatternWall(ctx, wallSx, wallSy, wallColor, ISO_WALL_LAYERS, isBack && window);
     }
 
     if (isEditing) {
@@ -273,25 +244,26 @@ export function RoomCanvas({
       gx: number,
       gy: number,
       name: string,
-      body: string,
-      shirt: string,
+      config: AvatarConfig | undefined,
+      dir: Direction,
       title?: string,
       admin?: boolean,
     ) => {
       const z = floorElevation(gx, gy);
       const { x: sx, y: sy } = gridToScreen(gx, gy, GRID_WIDTH, GRID_HEIGHT, z);
-      drawIsoCharacter(ctx, sx, sy, body, shirt);
+      const footY = tileFootY(sy);
+      const colors = resolveCharacterColors(config, spriteById);
+      drawPixelCharacter(ctx, sx, footY, dir, colors);
       drawNameTag(ctx, sx, sy, name, title, admin);
     };
 
     for (const rp of remotePlayers) {
-      const shared = !!rp.previewConfig;
       drawPlayer(
         rp.gridX,
         rp.gridY,
         rp.displayName,
-        "#b4e4ff",
-        shared ? "#f5a623" : "#4a90d9",
+        rp.previewConfig ?? rp.avatarConfig,
+        rp.direction ?? "down",
         rp.titleName,
         rp.isAdmin,
       );
@@ -310,19 +282,19 @@ export function RoomCanvas({
       playerPos.gridX,
       playerPos.gridY,
       displayName,
-      "#ffcba4",
-      "#ff6b9d",
+      avatarConfig,
+      direction,
       titleName,
       isAdmin,
     );
 
     const pz = floorElevation(playerPos.gridX, playerPos.gridY);
-    const { x: px, y: py } = gridToScreen(playerPos.gridX, playerPos.gridY, GRID_WIDTH, GRID_HEIGHT, pz);
+    const { x: px, y: sy } = gridToScreen(playerPos.gridX, playerPos.gridY, GRID_WIDTH, GRID_HEIGHT, pz);
     const arrow = { up: "▲", down: "▼", left: "◀", right: "▶" }[direction];
     ctx.fillStyle = "rgba(255,255,255,0.8)";
     ctx.font = "9px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(arrow, px, py - ISO_BLOCK_H * 3.8);
+    ctx.fillText(arrow, px, tileFootY(sy) - ISO_BLOCK_H * 4.2);
 
     ctx.restore();
   }, [
@@ -330,6 +302,8 @@ export function RoomCanvas({
     displaySize,
     layout,
     itemMap,
+    spriteById,
+    avatarConfig,
     wallpaperId,
     floorId,
     playerPos,

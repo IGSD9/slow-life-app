@@ -5,23 +5,25 @@ export const ISO_TILE_H = 20;
 export const ISO_BLOCK_H = 17;
 export const ISO_WALL_LAYERS = 6;
 
-/** 中央の段差付きウッドデッキ（参考: ハウジングカスタム） */
+/** 中央エリア（色分け用・高さは床と同一） */
 export const DECK_BOUNDS = { minX: 4, maxX: 11, minY: 3, maxY: 7 };
 
-export function floorElevation(gridX: number, gridY: number): number {
-  if (
-    gridX >= DECK_BOUNDS.minX &&
-    gridX <= DECK_BOUNDS.maxX &&
-    gridY >= DECK_BOUNDS.minY &&
-    gridY <= DECK_BOUNDS.maxY
-  ) {
-    return 1;
-  }
+export function floorElevation(_gridX: number, _gridY: number): number {
   return 0;
 }
 
 export function isDeckCell(gridX: number, gridY: number): boolean {
-  return floorElevation(gridX, gridY) > 0;
+  return (
+    gridX >= DECK_BOUNDS.minX &&
+    gridX <= DECK_BOUNDS.maxX &&
+    gridY >= DECK_BOUNDS.minY &&
+    gridY <= DECK_BOUNDS.maxY
+  );
+}
+
+/** タイル上面の立ち位置（足元） */
+export function tileFootY(sy: number): number {
+  return sy + ISO_TILE_H / 2;
 }
 
 export interface IsoPoint {
@@ -105,8 +107,6 @@ export function drawIsoFloorTile(
   const hw = ISO_TILE_W / 2;
   const hh = ISO_TILE_H / 2;
   const top = highlight ? shade(color, 25) : color;
-  const left = shade(color, -25);
-  const right = shade(color, -10);
 
   ctx.beginPath();
   ctx.moveTo(sx, sy);
@@ -132,24 +132,6 @@ export function drawIsoFloorTile(
     ctx.lineTo(sx + hw * 0.8, sy + hh * 1.9);
     ctx.stroke();
   }
-
-  ctx.beginPath();
-  ctx.moveTo(sx - hw, sy + hh);
-  ctx.lineTo(sx, sy + hh * 2);
-  ctx.lineTo(sx, sy + hh * 2 + 3);
-  ctx.lineTo(sx - hw, sy + hh + 3);
-  ctx.closePath();
-  ctx.fillStyle = left;
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(sx + hw, sy + hh);
-  ctx.lineTo(sx, sy + hh * 2);
-  ctx.lineTo(sx, sy + hh * 2 + 3);
-  ctx.lineTo(sx + hw, sy + hh + 3);
-  ctx.closePath();
-  ctx.fillStyle = right;
-  ctx.fill();
 }
 
 /** デッキ段差の側面 */
@@ -175,7 +157,7 @@ export function drawIsoPatternWall(
 
   const hw = ISO_TILE_W / 2;
   const hh = ISO_TILE_H / 2;
-  const baseY = sy + hh * 2;
+  const baseY = sy + hh;
   const h = ISO_BLOCK_H * layers;
 
   ctx.save();
@@ -258,7 +240,7 @@ export function drawIsoBlock(
   const left = shade(color, -30);
   const right = shade(color, -12);
 
-  const baseY = sy + hh * 2;
+  const baseY = sy + hh;
 
   ctx.beginPath();
   ctx.moveTo(sx - hw, baseY - h + hh);
@@ -309,9 +291,9 @@ export function drawPlatformBase(
   gridH: number,
   color: string,
 ) {
-  const backLeft = gridToScreen(-0.5, -0.5, gridW, gridH, -0.8);
-  const backRight = gridToScreen(gridW - 0.5, -0.5, gridW, gridH, -0.8);
-  const frontLeft = gridToScreen(-0.5, gridH - 0.5, gridW, gridH, -0.8);
+  const backLeft = gridToScreen(-0.5, -0.5, gridW, gridH, 0);
+  const backRight = gridToScreen(gridW - 0.5, -0.5, gridW, gridH, 0);
+  const frontLeft = gridToScreen(-0.5, gridH - 0.5, gridW, gridH, 0);
 
   const baseLayers = 2;
   const rimDepth = 5;
@@ -346,27 +328,11 @@ export function isRoomWallCell(gridX: number, gridY: number, gridW: number): boo
   return false;
 }
 
-/** キャラクター（ミニボクセル人型） */
-export function drawIsoCharacter(
-  ctx: CanvasRenderingContext2D,
-  sx: number,
-  sy: number,
-  bodyColor: string,
-  shirtColor: string,
-) {
-  drawIsoBlock(ctx, sx, sy - ISO_BLOCK_H * 0.6, shirtColor, 1);
-  const headY = sy - ISO_BLOCK_H * 1.8;
-  const hw = ISO_TILE_W / 4;
-  const hh = ISO_TILE_H / 4;
-  ctx.beginPath();
-  ctx.moveTo(sx, headY);
-  ctx.lineTo(sx + hw, headY + hh);
-  ctx.lineTo(sx, headY + hh * 2);
-  ctx.lineTo(sx - hw, headY + hh);
-  ctx.closePath();
-  ctx.fillStyle = bodyColor;
-  ctx.fill();
-}
+export {
+  drawPixelCharacter,
+  resolveCharacterColors,
+  type PixelCharacterColors,
+} from "./pixelCharacter";
 
 export function drawNameTag(
   ctx: CanvasRenderingContext2D,
@@ -376,7 +342,8 @@ export function drawNameTag(
   titleName?: string,
   isAdmin?: boolean,
 ) {
-  let labelY = sy - ISO_BLOCK_H * 3.2;
+  const footY = tileFootY(sy);
+  let labelY = footY - ISO_BLOCK_H * 3.8;
   ctx.textAlign = "center";
   if (titleName) {
     ctx.fillStyle = "#f5a623";
