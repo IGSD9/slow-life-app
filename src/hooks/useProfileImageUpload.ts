@@ -11,7 +11,12 @@ const ERROR_MESSAGES: Record<string, string> = {
   UPLOAD_FAILED: "アップロードに失敗しました",
 };
 
-export function useProfileImageUpload(onSuccess?: () => void) {
+export type ProfileImageUploadSuccess = (
+  kind: ImageKind,
+  url: string,
+) => void | Promise<void>;
+
+export function useProfileImageUpload(onSuccess?: ProfileImageUploadSuccess) {
   const [uploading, setUploading] = useState<ImageKind | null>(null);
   const [error, setError] = useState("");
 
@@ -27,13 +32,16 @@ export function useProfileImageUpload(onSuccess?: () => void) {
         const res = await fetch("/api/profile/upload", {
           method: "POST",
           body: formData,
+          cache: "no-store",
         });
         const data = await res.json();
         if (!res.ok) {
           setError(data.message ?? ERROR_MESSAGES[data.error] ?? "エラーが発生しました");
           return false;
         }
-        await onSuccess?.();
+        if (data.url) {
+          await onSuccess?.(kind, data.url as string);
+        }
         return true;
       } catch {
         setError("アップロードに失敗しました");

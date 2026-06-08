@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { uploadProfileImageAction } from "@/lib/actions/profileUpload";
 import type { ProfileImageKind } from "@/lib/storage/profileImages";
 
+export const dynamic = "force-dynamic";
+
 const ERROR_MESSAGES: Record<string, string> = {
   UNAUTHORIZED: "ログインが必要です",
   INVALID_TYPE: "JPEG / PNG / WebP / GIF のみアップロードできます",

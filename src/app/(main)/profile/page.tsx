@@ -58,8 +58,8 @@ export default function ProfilePage() {
 
   const fetchData = useCallback(async () => {
     const [pRes, rRes] = await Promise.all([
-      fetch("/api/profile"),
-      fetch("/api/profile/ranking"),
+      fetch("/api/profile", { cache: "no-store" }),
+      fetch("/api/profile/ranking", { cache: "no-store" }),
     ]);
     if (pRes.ok) setProfile(await pRes.json());
     if (rRes.ok) setRanking(await rRes.json());
@@ -69,7 +69,32 @@ export default function ProfilePage() {
     fetchData();
   }, [fetchData]);
 
-  const { upload, uploading, error: uploadError } = useProfileImageUpload(fetchData);
+  const onImageUploaded = useCallback(
+    async (kind: "icon" | "portrait", url: string) => {
+      await new Promise<void>((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+        img.src = url;
+      });
+      setProfile((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          profile: {
+            ...prev.profile,
+            ...(kind === "icon"
+              ? { profileIconUrl: url }
+              : { portraitUrl: url }),
+          },
+        };
+      });
+      fetchData().catch(() => {});
+    },
+    [fetchData],
+  );
+
+  const { upload, uploading, error: uploadError } = useProfileImageUpload(onImageUploaded);
   const editor = useImageEditorUpload(upload);
 
   const toggleRanking = async () => {

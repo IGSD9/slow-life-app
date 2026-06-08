@@ -64,7 +64,7 @@ export default function RoomPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const fetchRoom = useCallback(async () => {
-    const res = await fetch("/api/room");
+    const res = await fetch("/api/room", { cache: "no-store" });
     if (res.ok) {
       const data = await res.json();
       setRoom(data);
@@ -78,6 +78,14 @@ export default function RoomPage() {
   useEffect(() => {
     fetchRoom();
     fetch("/api/missions/login", { method: "POST" }).catch(() => {});
+  }, [fetchRoom]);
+
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === "visible") fetchRoom();
+    };
+    document.addEventListener("visibilitychange", refresh);
+    return () => document.removeEventListener("visibilitychange", refresh);
   }, [fetchRoom]);
 
   const profile = room?.user.profile;
