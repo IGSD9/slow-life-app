@@ -1,8 +1,8 @@
 /** アイソメトリック（2:1）座標変換・ボクセル描画 */
 
-export const ISO_TILE_W = 40;
-export const ISO_TILE_H = 20;
-export const ISO_BLOCK_H = 17;
+export const ISO_TILE_W = 52;
+export const ISO_TILE_H = 26;
+export const ISO_BLOCK_H = 22;
 export const ISO_WALL_LAYERS = 6;
 
 /** 奥左ロフト（段差付きベッドエリア） */
@@ -100,6 +100,21 @@ function shade(hex: string, amount: number): string {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
 
+function isoTilePath(
+  ctx: CanvasRenderingContext2D,
+  sx: number,
+  sy: number,
+  hw: number,
+  hh: number,
+) {
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+  ctx.lineTo(sx + hw, sy + hh);
+  ctx.lineTo(sx, sy + hh * 2);
+  ctx.lineTo(sx - hw, sy + hh);
+  ctx.closePath();
+}
+
 /** 床タイル（菱形の上面） */
 export function drawIsoFloorTile(
   ctx: CanvasRenderingContext2D,
@@ -113,21 +128,28 @@ export function drawIsoFloorTile(
   const hh = ISO_TILE_H / 2;
   const top = highlight ? shade(color, 25) : color;
 
-  ctx.beginPath();
-  ctx.moveTo(sx, sy);
-  ctx.lineTo(sx + hw, sy + hh);
-  ctx.lineTo(sx, sy + hh * 2);
-  ctx.lineTo(sx - hw, sy + hh);
-  ctx.closePath();
-  ctx.fillStyle = top;
+  isoTilePath(ctx, sx, sy, hw, hh);
+  const grad = ctx.createLinearGradient(sx - hw, sy, sx + hw, sy + hh * 2);
+  grad.addColorStop(0, shade(top, 8));
+  grad.addColorStop(0.45, top);
+  grad.addColorStop(1, shade(top, -14));
+  ctx.fillStyle = grad;
   ctx.fill();
-  ctx.strokeStyle = shade(color, -35);
+
+  ctx.strokeStyle = shade(color, -40);
+  ctx.lineWidth = 0.75;
+  ctx.stroke();
+
+  ctx.strokeStyle = shade(color, 18);
   ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(sx - hw * 0.15, sy + hh * 0.85);
+  ctx.lineTo(sx + hw * 0.55, sy + hh * 1.55);
   ctx.stroke();
 
   if (plank) {
-    ctx.strokeStyle = shade(color, -18);
-    ctx.lineWidth = 0.6;
+    ctx.strokeStyle = shade(color, -22);
+    ctx.lineWidth = 0.8;
     ctx.beginPath();
     ctx.moveTo(sx - hw * 0.6, sy + hh * 0.5);
     ctx.lineTo(sx + hw * 0.6, sy + hh * 1.5);
@@ -346,10 +368,13 @@ export function drawIsoBlock(
   ctx.lineTo(sx + hw, baseY - h + hh);
   ctx.lineTo(sx, baseY - h + hh * 2);
   ctx.closePath();
-  ctx.fillStyle = top;
+  const topGrad = ctx.createLinearGradient(sx - hw, baseY - h, sx + hw, baseY);
+  topGrad.addColorStop(0, shade(top, 12));
+  topGrad.addColorStop(1, shade(top, -8));
+  ctx.fillStyle = topGrad;
   ctx.fill();
-  ctx.strokeStyle = shade(color, -40);
-  ctx.lineWidth = 0.5;
+  ctx.strokeStyle = shade(color, -45);
+  ctx.lineWidth = 0.75;
   ctx.stroke();
 
   ctx.beginPath();
@@ -358,7 +383,10 @@ export function drawIsoBlock(
   ctx.lineTo(sx, baseY + hh * 2);
   ctx.lineTo(sx, baseY - h + hh * 2);
   ctx.closePath();
-  ctx.fillStyle = left;
+  const leftGrad = ctx.createLinearGradient(sx - hw, baseY - h, sx, baseY + hh);
+  leftGrad.addColorStop(0, shade(left, -10));
+  leftGrad.addColorStop(1, left);
+  ctx.fillStyle = leftGrad;
   ctx.fill();
 
   ctx.beginPath();
@@ -367,8 +395,22 @@ export function drawIsoBlock(
   ctx.lineTo(sx, baseY + hh * 2);
   ctx.lineTo(sx, baseY - h + hh * 2);
   ctx.closePath();
-  ctx.fillStyle = right;
+  const rightGrad = ctx.createLinearGradient(sx + hw, baseY - h, sx, baseY + hh);
+  rightGrad.addColorStop(0, shade(right, 6));
+  rightGrad.addColorStop(1, right);
+  ctx.fillStyle = rightGrad;
   ctx.fill();
+
+  ctx.strokeStyle = shade(color, -55);
+  ctx.lineWidth = 0.5;
+  ctx.beginPath();
+  ctx.moveTo(sx - hw, baseY - h + hh);
+  ctx.lineTo(sx - hw, baseY + hh);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(sx + hw, baseY - h + hh);
+  ctx.lineTo(sx + hw, baseY + hh);
+  ctx.stroke();
 }
 
 /** 壁ブロック（部屋の外周） */
@@ -453,22 +495,43 @@ export function drawNameTag(
   isAdmin?: boolean,
 ) {
   const footY = tileFootY(sy);
-  let labelY = footY - CHARACTER_DISPLAY_HEIGHT - 6;
+  let labelY = footY - CHARACTER_DISPLAY_HEIGHT - 8;
   ctx.textAlign = "center";
-  if (titleName) {
-    ctx.fillStyle = "#f5a623";
-    ctx.font = "bold 7px monospace";
-    ctx.fillText(titleName, sx, labelY);
-    labelY -= 9;
+
+  const lines: { text: string; color: string; font: string }[] = [];
+  if (titleName) lines.push({ text: titleName, color: "#f5a623", font: "bold 9px monospace" });
+  lines.push({
+    text: displayName,
+    color: isAdmin ? "#f5d76e" : "#ffffff",
+    font: "bold 10px monospace",
+  });
+  if (isAdmin) lines.push({ text: "[管理者]", color: "#e94560", font: "8px monospace" });
+
+  let maxW = 0;
+  for (const line of lines) {
+    ctx.font = line.font;
+    maxW = Math.max(maxW, ctx.measureText(line.text).width);
   }
-  ctx.fillStyle = isAdmin ? "#f5d76e" : "#ffffff";
-  ctx.font = "bold 8px monospace";
-  ctx.fillText(displayName, sx, labelY);
-  if (isAdmin) {
-    labelY -= 9;
-    ctx.fillStyle = "#e94560";
-    ctx.font = "7px monospace";
-    ctx.fillText("[管理者]", sx, labelY);
+  const padX = 6;
+  const padY = 3;
+  const lineH = 11;
+  const boxH = lines.length * lineH + padY * 2;
+  const boxW = maxW + padX * 2;
+  const boxTop = labelY - lineH * lines.length - padY + 4;
+
+  ctx.fillStyle = "rgba(8, 10, 22, 0.72)";
+  ctx.beginPath();
+  ctx.roundRect(sx - boxW / 2, boxTop, boxW, boxH, 4);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(74, 240, 255, 0.25)";
+  ctx.lineWidth = 0.75;
+  ctx.stroke();
+
+  for (const line of lines) {
+    ctx.fillStyle = line.color;
+    ctx.font = line.font;
+    ctx.fillText(line.text, sx, labelY);
+    labelY -= lineH;
   }
 }
 

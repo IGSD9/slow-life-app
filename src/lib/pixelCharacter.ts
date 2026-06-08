@@ -64,7 +64,7 @@ const HAT_BAND = "#c0392b";
 
 const SPRITE_W = 24;
 const SPRITE_H = 34;
-const SCALE = 3;
+const SCALE = 4;
 
 export const CHARACTER_DISPLAY_HEIGHT = SPRITE_H * SCALE;
 export const CHARACTER_DISPLAY_WIDTH = SPRITE_W * SCALE;
@@ -306,16 +306,19 @@ export function drawPixelCharacter(
   colors: PixelCharacterColors,
 ) {
   const drawW = CHARACTER_DISPLAY_WIDTH;
-  const drawH = CHARACTER_DISPLAY_HEIGHT;
   const ox = Math.round(sx - drawW / 2);
-  const oy = Math.round(footY - drawH);
+  const oy = Math.round(footY - SPRITE_H * SCALE);
 
   ctx.save();
   ctx.imageSmoothingEnabled = false;
 
-  ctx.fillStyle = "rgba(0,0,0,0.35)";
+  const shadowGrad = ctx.createRadialGradient(sx, footY + 2, 0, sx, footY + 2, 22);
+  shadowGrad.addColorStop(0, "rgba(0,0,0,0.45)");
+  shadowGrad.addColorStop(0.6, "rgba(0,0,0,0.2)");
+  shadowGrad.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = shadowGrad;
   ctx.beginPath();
-  ctx.ellipse(sx, footY + 1, 14, 5, 0, 0, Math.PI * 2);
+  ctx.ellipse(sx, footY + 2, 20, 7, 0, 0, Math.PI * 2);
   ctx.fill();
 
   const draw =
@@ -327,6 +330,8 @@ export function drawPixelCharacter(
           ? drawRight
           : drawDown;
 
-  draw(ctx, ox, oy, colors);
+  ctx.translate(ox, oy);
+  ctx.scale(SCALE, SCALE);
+  draw(ctx, 0, 0, colors);
   ctx.restore();
 }

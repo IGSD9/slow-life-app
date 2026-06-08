@@ -35,6 +35,7 @@ import {
   COUCH_POS,
   DESK_LEFT,
   DESK_RIGHT,
+  drawAmbientVignette,
   drawFloorNeonReflections,
   drawGamingDesks,
   drawLoFiBackground,
@@ -45,6 +46,7 @@ import {
   drawRampTile,
   drawRugTile,
   drawWallNeonGlow,
+  drawWallSurfaceDetail,
   isRampCell,
   isRugCell,
   ROOM_COLORS,
@@ -143,6 +145,7 @@ export function RoomCanvas({
   const spriteById = new Map(items.map((i) => [i.id, i.spriteKey]));
   const baseSize = canvasSize(GRID_WIDTH, GRID_HEIGHT);
   const [displaySize, setDisplaySize] = useState(baseSize);
+  const dprRef = useRef(1);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -151,6 +154,7 @@ export function RoomCanvas({
     const update = () => {
       const w = el.clientWidth;
       if (w <= 0) return;
+      dprRef.current = Math.min(window.devicePixelRatio || 1, 2);
       const scale = w / baseSize.width;
       setDisplaySize({
         width: Math.round(w),
@@ -172,13 +176,16 @@ export function RoomCanvas({
 
     const { width: DW, height: DH } = displaySize;
     const { width: BW, height: BH } = baseSize;
+    const dpr = dprRef.current;
     const scaleX = DW / BW;
     const scaleY = DH / BH;
 
-    ctx.clearRect(0, 0, DW, DH);
+    canvas.width = Math.round(DW * dpr);
+    canvas.height = Math.round(DH * dpr);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = false;
     ctx.save();
-    ctx.scale(scaleX, scaleY);
+    ctx.setTransform(scaleX * dpr, 0, 0, scaleY * dpr, 0, 0);
 
     drawLoFiBackground(ctx, BW, BH);
     drawOutdoorPad(ctx, GRID_WIDTH, GRID_HEIGHT);
@@ -211,7 +218,7 @@ export function RoomCanvas({
         drawRampTile(ctx, sx, sy, rampIdx);
       } else {
         const checker = (x + y) % 2 === 0 ? ROOM_COLORS.floorA : ROOM_COLORS.floorB;
-        drawIsoFloorTile(ctx, sx, sy, checker, isHighlight || isPlayer, false);
+        drawIsoFloorTile(ctx, sx, sy, checker, isHighlight || isPlayer, true);
       }
     }
 
@@ -219,6 +226,7 @@ export function RoomCanvas({
 
     drawContinuousBackWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
     drawContinuousLeftWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
+    drawWallSurfaceDetail(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS);
     drawRainyCityWindow(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS);
     drawWallNeonGlow(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS);
 
@@ -303,7 +311,9 @@ export function RoomCanvas({
     ctx.fillStyle = "rgba(255,255,255,0.8)";
     ctx.font = "9px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(arrow, px, tileFootY(sy) - CHARACTER_DISPLAY_HEIGHT - 10);
+    ctx.fillText(arrow, px, tileFootY(sy) - CHARACTER_DISPLAY_HEIGHT - 12);
+
+    drawAmbientVignette(ctx, BW, BH);
 
     ctx.restore();
   }, [
@@ -437,14 +447,12 @@ export function RoomCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden rounded-xl border-2 border-[#2a3458]/60 shadow-lg shadow-black/50"
+      className="relative w-full overflow-hidden rounded-xl border-2 border-[#2a3458]/70 shadow-xl shadow-black/60"
     >
       <canvas
         ref={canvasRef}
-        width={displaySize.width}
-        height={displaySize.height}
         className="w-full h-auto block cursor-pointer"
-        style={{ imageRendering: "pixelated" }}
+        style={{ imageRendering: "auto" }}
         onClick={(e) => handlePointer(e.clientX, e.clientY)}
         onMouseMove={(e) => {
           if (!isEditing) return;
