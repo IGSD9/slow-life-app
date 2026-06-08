@@ -144,6 +144,139 @@ export function drawDeckRiser(
   drawIsoBlock(ctx, sx, sy, color, 1);
 }
 
+/** 背面壁を1枚の面として描画（タイル間の隙間から背景が見えないようにする） */
+export function drawContinuousBackWall(
+  ctx: CanvasRenderingContext2D,
+  gridW: number,
+  gridH: number,
+  color: string,
+  layers: number,
+) {
+  const hw = ISO_TILE_W / 2;
+  const hh = ISO_TILE_H / 2;
+  const h = ISO_BLOCK_H * layers;
+  const x0 = 1;
+  const x1 = gridW - 2;
+
+  const left = gridToScreen(x0, 0, gridW, gridH, 0);
+  const right = gridToScreen(x1, 0, gridW, gridH, 0);
+  const baseL = left.y + hh;
+  const baseR = right.y + hh;
+
+  ctx.beginPath();
+  ctx.moveTo(left.x - hw, baseL - h + hh);
+  ctx.lineTo(left.x, baseL - h);
+  ctx.lineTo(right.x, baseR - h);
+  ctx.lineTo(right.x + hw, baseR - h + hh);
+  ctx.lineTo(right.x, baseR - h + hh * 2);
+  ctx.lineTo(left.x, baseL - h + hh * 2);
+  ctx.closePath();
+  ctx.fillStyle = shade(color, 30);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(left.x - hw, baseL - h + hh);
+  ctx.lineTo(left.x - hw, baseL + hh);
+  ctx.lineTo(right.x + hw, baseR + hh);
+  ctx.lineTo(right.x + hw, baseR - h + hh);
+  ctx.closePath();
+  ctx.fillStyle = shade(color, -12);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(left.x - hw, baseL - h + hh);
+  ctx.lineTo(left.x, baseL - h + hh * 2);
+  ctx.lineTo(left.x, baseL + hh * 2);
+  ctx.lineTo(left.x - hw, baseL + hh);
+  ctx.closePath();
+  ctx.fillStyle = shade(color, -30);
+  ctx.fill();
+
+  ctx.save();
+  ctx.strokeStyle = shade(color, 40);
+  ctx.lineWidth = 0.4;
+  for (let i = 0; i < 3; i++) {
+    const oy = baseL - h + 8 + i * 10;
+    const slope = (baseR - baseL) / Math.max(1, right.x - left.x);
+    ctx.beginPath();
+    ctx.moveTo(left.x - hw * 0.7, oy);
+    ctx.lineTo(right.x + hw * 0.7, oy + (right.x - left.x) * slope + 4);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  for (let x = x0; x <= x1; x++) {
+    if (x % 3 !== 1) continue;
+    const { x: sx, y: sy } = gridToScreen(x, 0, gridW, gridH, 0);
+    const baseY = sy + hh;
+    const wy = baseY - h + 14;
+    ctx.fillStyle = "#a8e4ff";
+    ctx.fillRect(sx - 5, wy, 10, 12);
+    ctx.strokeStyle = "#f5f0e8";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(sx - 5, wy, 10, 12);
+    ctx.beginPath();
+    ctx.moveTo(sx, wy);
+    ctx.lineTo(sx, wy + 12);
+    ctx.moveTo(sx - 5, wy + 6);
+    ctx.lineTo(sx + 5, wy + 6);
+    ctx.stroke();
+  }
+}
+
+/** 左側壁を1枚の面として描画 */
+export function drawContinuousLeftWall(
+  ctx: CanvasRenderingContext2D,
+  gridW: number,
+  gridH: number,
+  color: string,
+  layers: number,
+) {
+  const hw = ISO_TILE_W / 2;
+  const hh = ISO_TILE_H / 2;
+  const h = ISO_BLOCK_H * layers;
+  const y0 = 1;
+  const y1 = gridH - 1;
+
+  const back = gridToScreen(0, y0, gridW, gridH, 0);
+  const front = gridToScreen(0, y1, gridW, gridH, 0);
+  const baseB = back.y + hh;
+  const baseF = front.y + hh;
+
+  ctx.beginPath();
+  ctx.moveTo(back.x - hw, baseB - h + hh);
+  ctx.lineTo(back.x, baseB - h);
+  ctx.lineTo(front.x, baseF - h);
+  ctx.lineTo(front.x - hw, baseF - h + hh);
+  ctx.lineTo(front.x, baseF - h + hh * 2);
+  ctx.lineTo(back.x, baseB - h + hh * 2);
+  ctx.closePath();
+  ctx.fillStyle = shade(color, 30);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(back.x - hw, baseB - h + hh);
+  ctx.lineTo(back.x - hw, baseB + hh);
+  ctx.lineTo(front.x - hw, baseF + hh);
+  ctx.lineTo(front.x - hw, baseF - h + hh);
+  ctx.closePath();
+  ctx.fillStyle = shade(color, -12);
+  ctx.fill();
+
+  ctx.save();
+  ctx.strokeStyle = shade(color, 40);
+  ctx.lineWidth = 0.4;
+  for (let i = 0; i < 3; i++) {
+    const oy = baseB - h + 8 + i * 10;
+    const slope = (baseF - baseB) / Math.max(1, front.x - back.x);
+    ctx.beginPath();
+    ctx.moveTo(back.x - hw * 0.7, oy);
+    ctx.lineTo(front.x - hw * 0.7, oy + (front.x - back.x) * slope + 4);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 /** パターン壁（ピンク系ドット柄） */
 export function drawIsoPatternWall(
   ctx: CanvasRenderingContext2D,

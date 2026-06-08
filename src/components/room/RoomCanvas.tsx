@@ -12,9 +12,10 @@ import { isNearPC, resolvePCPosition } from "@/lib/roomPc";
 import {
   canvasSize,
   depthKey,
+  drawContinuousBackWall,
+  drawContinuousLeftWall,
   drawIsoBlock,
   drawIsoFloorTile,
-  drawIsoPatternWall,
   drawNameTag,
   drawPixelCharacter,
   drawPlatformBase,
@@ -199,19 +200,8 @@ export function RoomCanvas({
       );
     }
 
-    const wallSegments: { x: number; y: number; key: number; window: boolean; edge: "back" | "left" }[] = [];
-    for (let x = 1; x < GRID_WIDTH - 1; x++) {
-      wallSegments.push({ x, y: 0, key: depthKey(x, 0), window: x % 3 === 1, edge: "back" });
-    }
-    for (let y = 1; y < GRID_HEIGHT; y++) {
-      wallSegments.push({ x: 0, y, key: depthKey(0, y), window: false, edge: "left" });
-    }
-    wallSegments.sort((a, b) => a.key - b.key);
-    for (const { x, y, window, edge } of wallSegments) {
-      const { x: sx, y: sy } = gridToScreen(x, y, GRID_WIDTH, GRID_HEIGHT, 0);
-      const isRightEnd = edge === "back" && x === GRID_WIDTH - 2;
-      drawIsoPatternWall(ctx, sx, sy, wallColor, ISO_WALL_LAYERS, window, isRightEnd);
-    }
+    drawContinuousBackWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
+    drawContinuousLeftWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
 
     if (isEditing) {
       drawRoomBoundsOutline(ctx, GRID_WIDTH, GRID_HEIGHT);
