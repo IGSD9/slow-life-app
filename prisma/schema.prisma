@@ -1,0 +1,281 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile             Profile?
+  room                Room?
+  inventory           InventoryItem[]
+  friendshipsAsUser   Friendship[]       @relation("UserFriendships")
+  friendshipsAsFriend Friendship[]       @relation("FriendFriendships")
+  battlePass          BattlePassProgress[]
+  missions            MissionProgress[]
+  transactions        Transaction[]
+  levelRewards        LevelRewardClaim[]
+}
+
+model Profile {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  displayName      String   @db.VarChar(20)
+  level            Int      @default(1)
+  exp              Int      @default(0)
+  avatarConfig     Json     @default("{}")
+  showAffinityRank Boolean  @default(true)
+  isAdmin          Boolean  @default(false)
+  coins            Int      @default(500)
+  gems             Int      @default(0)
+  titleId          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title Title? @relation(fields: [titleId], references: [id])
+}
+
+enum ItemCategory {
+  FURNITURE
+  CLOTHING
+  STAMP
+  TITLE
+  CURRENCY
+}
+
+enum ClothingSlot {
+  HAT
+  TOP
+  BOTTOM
+  SHOES
+  ACCESSORY
+}
+
+model ItemMaster {
+  id           String        @id @default(uuid())
+  name         String
+  description  String?
+  category     ItemCategory
+  clothingSlot ClothingSlot?
+  spriteKey    String
+  rarity       Int           @default(1)
+  priceCoins   Int           @default(0)
+  priceGems    Int           @default(0)
+  isTradeable  Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+
+  inventoryItems    InventoryItem[]
+  levelRewards      LevelReward[]
+  battlePassRewards BattlePassReward[]
+}
+
+model InventoryItem {
+  id         String   @id @default(uuid())
+  userId     String
+  itemId     String
+  quantity   Int      @default(1)
+  isPlaced   Boolean  @default(false)
+  acquiredAt DateTime @default(now())
+
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item ItemMaster @relation(fields: [itemId], references: [id])
+
+  @@unique([userId, itemId])
+  @@index([userId])
+}
+
+model Room {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  wallpaperId String   @default("wall_default")
+  floorId     String   @default("floor_default")
+  layoutData  Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+}
+
+model Friendship {
+  id        String           @id @default(uuid())
+  userId    String
+  friendId  String
+  status    FriendshipStatus @default(PENDING)
+  affinity  Int              @default(0)
+  isMarried Boolean          @default(false)
+  marriedAt DateTime?
+  marriageProposalFrom String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user   User @relation("UserFriendships", fields: [userId], references: [id], onDelete: Cascade)
+  friend User @relation("FriendFriendships", fields: [friendId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, friendId])
+  @@index([userId, affinity])
+}
+
+model LevelReward {
+  id      String  @id @default(uuid())
+  level   Int     @unique
+  itemId  String
+  titleId String?
+
+  item  ItemMaster @relation(fields: [itemId], references: [id])
+  title Title?     @relation(fields: [titleId], references: [id])
+}
+
+model LevelRewardClaim {
+  id        String   @id @default(uuid())
+  userId    String
+  level     Int
+  claimedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, level])
+}
+
+model Title {
+  id          String @id @default(uuid())
+  name        String
+  description String?
+
+  profiles     Profile[]
+  levelRewards LevelReward[]
+}
+
+enum MissionType {
+  DAILY
+  ACHIEVEMENT
+}
+
+model MissionMaster {
+  id           String      @id @default(uuid())
+  type         MissionType
+  title        String
+  description  String
+  targetValue  Int
+  expReward    Int         @default(0)
+  coinReward   Int         @default(0)
+  itemRewardId String?
+  isActive     Boolean     @default(true)
+
+  progress MissionProgress[]
+}
+
+model MissionProgress {
+  id        String    @id @default(uuid())
+  userId    String
+  missionId String
+  progress  Int       @default(0)
+  completed Boolean   @default(false)
+  claimed   Boolean   @default(false)
+  resetAt   DateTime?
+  updatedAt DateTime  @updatedAt
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission MissionMaster @relation(fields: [missionId], references: [id])
+
+  @@unique([userId, missionId])
+}
+
+model BattlePassSeason {
+  id        String   @id @default(uuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  maxTier   Int      @default(50)
+  isActive  Boolean  @default(false)
+
+  rewards  BattlePassReward[]
+  progress BattlePassProgress[]
+}
+
+model BattlePassReward {
+  id          String  @id @default(uuid())
+  seasonId    String
+  tier        Int
+  isPremium   Boolean @default(false)
+  itemId      String
+  expRequired Int     @default(0)
+
+  season BattlePassSeason @relation(fields: [seasonId], references: [id])
+  item   ItemMaster       @relation(fields: [itemId], references: [id])
+
+  @@unique([seasonId, tier, isPremium])
+}
+
+model BattlePassProgress {
+  id          String  @id @default(uuid())
+  userId      String
+  seasonId    String
+  currentTier Int     @default(0)
+  currentExp  Int     @default(0)
+  isPremium   Boolean @default(false)
+
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  season BattlePassSeason @relation(fields: [seasonId], references: [id])
+
+  @@unique([userId, seasonId])
+}
+
+model BattlePassClaim {
+  id        String   @id @default(uuid())
+  userId    String
+  seasonId  String
+  tier      Int
+  isPremium Boolean
+  claimedAt DateTime @default(now())
+
+  @@unique([userId, seasonId, tier, isPremium])
+}
+
+enum TransactionType {
+  PURCHASE_GEMS
+  PURCHASE_ITEM
+  BATTLE_PASS
+}
+
+model Transaction {
+  id        String          @id @default(uuid())
+  userId    String
+  type      TransactionType
+  amount    Int
+  itemId    String?
+  createdAt DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum TradeStatus {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+}
+
+model TradeSession {
+  id            String      @id @default(uuid())
+  proposerId    String
+  receiverId    String
+  proposerItems Json
+  receiverItems Json
+  status        TradeStatus @default(PENDING)
+  createdAt     DateTime    @default(now())
+  completedAt   DateTime?
+}

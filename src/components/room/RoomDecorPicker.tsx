@@ -1,0 +1,60 @@
+"use client";
+
+const WALLPAPERS = [
+  { id: "wall_default", label: "パープル", color: "#2d1b4e" },
+  { id: "wall_blue", label: "ブルー", color: "#1a3a5c" },
+  { id: "wall_pink", label: "ピンク", color: "#4a2040" },
+];
+
+const FLOORS = [
+  { id: "floor_default", label: "ダークウッド", color: "#3d2b1f" },
+  { id: "floor_wood", label: "ウッド", color: "#5c3d2e" },
+  { id: "floor_tile", label: "タイル", color: "#4a4a5a" },
+];
+
+interface RoomDecorPickerProps {
+  wallpaperId: string;
+  floorId: string;
+  onChange: (wallpaperId: string, floorId: string) => void;
+}
+
+export function RoomDecorPicker({ wallpaperId, floorId, onChange }: RoomDecorPickerProps) {
+  return (
+    <div className="bg-[#0f0f1a] rounded-lg border border-[#e94560]/20 p-3 space-y-3">
+      <div>
+        <p className="text-xs text-gray-400 mb-2">壁紙</p>
+        <div className="flex gap-2">
+          {WALLPAPERS.map((w) => (
+            <button
+              key={w.id}
+              onClick={() => onChange(w.id, floorId)}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${
+                wallpaperId === w.id ? "border-[#e94560]" : "border-gray-700"
+              }`}
+            >
+              <div className="w-10 h-6 rounded" style={{ backgroundColor: w.color }} />
+              <span className="text-[9px] text-gray-400">{w.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <p className="text-xs text-gray-400 mb-2">床</p>
+        <div className="flex gap-2">
+          {FLOORS.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => onChange(wallpaperId, f.id)}
+              className={`flex flex-col items-center gap-1 p-2 rounded-lg border ${
+                floorId === f.id ? "border-[#e94560]" : "border-gray-700"
+              }`}
+            >
+              <div className="w-10 h-6 rounded" style={{ backgroundColor: f.color }} />
+              <span className="text-[9px] text-gray-400">{f.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
