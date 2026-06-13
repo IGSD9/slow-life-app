@@ -48,7 +48,7 @@ export function resolveCharacterColors(
   return colors;
 }
 
-const OUTLINE = "#2d1f14";
+const OUTLINE = "#483830";
 const EYE = "#1e1e3a";
 const EYE_WHITE = "#faf8f5";
 const EYE_SHINE = "#ffffff";

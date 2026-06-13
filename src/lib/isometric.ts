@@ -1,6 +1,6 @@
 /** アイソメトリック（2:1）座標変換・GBA風ピクセル描画 */
 
-import { px, shade, snap } from "./pixelDraw";
+import { px, shade, snap, KAIRO_OUTLINE } from "./pixelDraw";
 
 /** 1マス ≈ 48px 相当（菱形幅96・高48） */
 export const ISO_TILE_W = 96;
@@ -107,6 +107,52 @@ function isoTilePath(
   ctx.lineTo(snap(sx), snap(sy + hh * 2));
   ctx.lineTo(snap(sx - hw), snap(sy + hh));
   ctx.closePath();
+}
+
+/** 草タイル（冒険ダンジョン村風） */
+export function drawIsoGrassTile(
+  ctx: CanvasRenderingContext2D,
+  sx: number,
+  sy: number,
+  variant = 0,
+  highlight = false,
+) {
+  const grassA = highlight ? "#78d858" : "#68c848";
+  const grassB = highlight ? "#68c848" : "#58b838";
+  const c = variant % 2 === 0 ? grassA : grassB;
+
+  drawIsoFloorTile(ctx, sx, sy, c, false, false, variant);
+
+  const hh = ISO_TILE_H / 2;
+  const hw = ISO_TILE_W / 2;
+  const dot = variant % 3 === 0 ? "#48a028" : "#509830";
+  px(ctx, sx - hw * 0.25, sy + hh * 0.6, 2, 2, dot);
+  px(ctx, sx + hw * 0.1, sy + hh * 1.1, 2, 2, dot);
+  px(ctx, sx - hw * 0.05, sy + hh * 1.35, 3, 2, shade(c, -12));
+
+  if (variant % 5 === 0) {
+    px(ctx, sx + hw * 0.2, sy + hh * 0.85, 2, 2, "#f0e040");
+    px(ctx, sx + hw * 0.22, sy + hh * 0.82, 2, 1, "#ffffff");
+  }
+}
+
+/** 土の道タイル */
+export function drawIsoPathTile(
+  ctx: CanvasRenderingContext2D,
+  sx: number,
+  sy: number,
+  variant = 0,
+  highlight = false,
+) {
+  const pathA = highlight ? "#e0b868" : "#d0a858";
+  const pathB = highlight ? "#d0a858" : "#c09848";
+  const c = variant % 2 === 0 ? pathA : pathB;
+  drawIsoFloorTile(ctx, sx, sy, c, false, false, variant);
+
+  const hh = ISO_TILE_H / 2;
+  px(ctx, sx - 4, sy + hh * 0.8, 3, 2, shade(c, -18));
+  px(ctx, sx + 2, sy + hh * 1.2, 4, 2, shade(c, -14));
+  px(ctx, sx - 6, sy + hh * 1.4, 2, 2, shade(c, -22));
 }
 
 /** 木目ドット模様を菱形上面に描画 */
@@ -247,15 +293,23 @@ export function drawIsoVoxel(
   ctx.fillStyle = right;
   ctx.fill();
 
-  ctx.strokeStyle = shade(right, -20);
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = KAIRO_OUTLINE;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(snap(sx - hw), snap(baseY - h + hh));
+  ctx.lineTo(snap(sx), snap(baseY - h));
+  ctx.lineTo(snap(sx + hw), snap(baseY - h + hh));
+  ctx.lineTo(snap(sx + hw), snap(baseY + hh));
+  ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(snap(sx - hw), snap(baseY - h + hh));
   ctx.lineTo(snap(sx - hw), snap(baseY + hh));
+  ctx.lineTo(snap(sx), snap(baseY + hh * 2));
   ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(snap(sx + hw), snap(baseY - h + hh));
   ctx.lineTo(snap(sx + hw), snap(baseY + hh));
+  ctx.lineTo(snap(sx), snap(baseY + hh * 2));
   ctx.stroke();
 }
 
@@ -287,7 +341,35 @@ export function drawDeckRiser(
   drawIsoBlock(ctx, sx, sy, color, 1);
 }
 
-/** 背面壁（レンガ＋厚みキャップ） */
+/** 木製フェンス模様 */
+function drawWoodPlankPattern(
+  ctx: CanvasRenderingContext2D,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  base: string,
+) {
+  const gap = shade(base, -24);
+  const plankA = shade(base, 10);
+  const plankB = shade(base, -6);
+  const rowH = 10;
+
+  ctx.fillStyle = gap;
+  ctx.fillRect(snap(x0), snap(y0), snap(x1 - x0), snap(y1 - y0));
+
+  for (let row = 0; y0 + row * rowH < y1; row++) {
+    const by = snap(y0 + row * rowH + 1);
+    const bh = Math.min(rowH - 2, snap(y1) - by);
+    if (bh <= 0) continue;
+    ctx.fillStyle = row % 2 === 0 ? plankA : plankB;
+    ctx.fillRect(snap(x0 + 2), by, snap(x1 - x0 - 4), bh);
+    ctx.fillStyle = shade(gap, -10);
+    ctx.fillRect(snap(x0 + 2), by + bh - 1, snap(x1 - x0 - 4), 1);
+  }
+}
+
+/** 背面壁（木製フェンス＋厚み） */
 export function drawContinuousBackWall(
   ctx: CanvasRenderingContext2D,
   gridW: number,
@@ -316,7 +398,7 @@ export function drawContinuousBackWall(
   ctx.lineTo(snap(left.x - hw), snap(baseL - h + hh + WALL_CAP));
   ctx.closePath();
   ctx.clip();
-  drawBrickPattern(
+  drawWoodPlankPattern(
     ctx,
     left.x - hw,
     baseL - h,
@@ -338,6 +420,10 @@ export function drawContinuousBackWall(
   ctx.lineWidth = 2;
   ctx.stroke();
 
+  ctx.strokeStyle = KAIRO_OUTLINE;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
   ctx.beginPath();
   ctx.moveTo(snap(left.x - hw), snap(baseL - h + hh));
   ctx.lineTo(snap(left.x), snap(baseL - h + hh * 2));
@@ -347,7 +433,7 @@ export function drawContinuousBackWall(
   ctx.fillStyle = shade(color, -34);
   ctx.fill();
 
-  ctx.fillStyle = shade(color, 20);
+  ctx.fillStyle = shade(color, 24);
   ctx.beginPath();
   ctx.moveTo(snap(left.x - hw), snap(baseL - h + hh));
   ctx.lineTo(snap(right.x + hw), snap(baseR - h + hh));
@@ -355,12 +441,12 @@ export function drawContinuousBackWall(
   ctx.lineTo(snap(left.x - hw), snap(baseL - h + hh + WALL_CAP));
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = shade(color, -12);
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = KAIRO_OUTLINE;
+  ctx.lineWidth = 3;
   ctx.stroke();
 }
 
-/** 左側壁（コンクリート＋厚み） */
+/** 左側壁（木製＋厚み） */
 export function drawContinuousLeftWall(
   ctx: CanvasRenderingContext2D,
   gridW: number,
@@ -379,7 +465,7 @@ export function drawContinuousLeftWall(
   const baseB = back.y + hh;
   const baseF = front.y + hh;
 
-  const concrete = shade(color, -8);
+  const wood = shade(color, 4);
 
   ctx.save();
   ctx.beginPath();
@@ -396,25 +482,7 @@ export function drawContinuousLeftWall(
   const yTop = baseB - h;
   const x1 = back.x + hw * 0.3;
   const yBot = baseF + hh;
-  ctx.fillStyle = concrete;
-  ctx.fillRect(snap(x0), snap(yTop), snap(x1 - x0), snap(yBot - yTop));
-
-  ctx.strokeStyle = shade(concrete, -22);
-  ctx.lineWidth = 1;
-  for (let i = 0; i < 8; i++) {
-    const ly = snap(yTop + 6 + i * 12);
-    ctx.beginPath();
-    ctx.moveTo(snap(x0 + 2), ly);
-    ctx.lineTo(snap(x1 - 2), ly);
-    ctx.stroke();
-  }
-  for (let i = 0; i < 5; i++) {
-    const lx = snap(x0 + 4 + i * 8);
-    ctx.beginPath();
-    ctx.moveTo(lx, snap(yTop + 2));
-    ctx.lineTo(lx, snap(yBot - 2));
-    ctx.stroke();
-  }
+  drawWoodPlankPattern(ctx, x0, yTop, x1, yBot, wood);
   ctx.restore();
 
   ctx.beginPath();
@@ -603,14 +671,14 @@ export function drawNameTag(
   const boxTop = snap(labelY - lineH * lines.length - padY + 4);
   const boxLeft = snap(sx - boxW / 2);
 
-  px(ctx, boxLeft, boxTop, boxW, boxH, "#1a2030");
-  ctx.strokeStyle = "#5090c0";
-  ctx.lineWidth = 2;
+  px(ctx, boxLeft, boxTop, boxW, boxH, "#f8f0d8");
+  ctx.strokeStyle = KAIRO_OUTLINE;
+  ctx.lineWidth = 3;
   ctx.strokeRect(boxLeft, boxTop, boxW, boxH);
-  px(ctx, boxLeft, boxTop, boxW, 2, "#70b0e0");
+  px(ctx, boxLeft, boxTop, boxW, 3, "#e8d8b0");
 
   for (const line of lines) {
-    ctx.fillStyle = line.color;
+    ctx.fillStyle = line.color === "#ffffff" ? "#483830" : line.color;
     ctx.font = line.font;
     ctx.fillText(line.text, snap(sx), snap(labelY));
     labelY -= lineH;

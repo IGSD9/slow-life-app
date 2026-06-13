@@ -24,6 +24,10 @@ export function shade(hex: string, amount: number): string {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
 
+/** カイロソフト風の太めアウトライン */
+export const KAIRO_OUTLINE = "#483830";
+export const KAIRO_OUTLINE_DARK = "#302820";
+
 /** 左上光源の3面ボクセル色 */
 export function voxelFaces(base: string) {
   return {

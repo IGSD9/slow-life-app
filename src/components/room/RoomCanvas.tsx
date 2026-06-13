@@ -14,7 +14,7 @@ import {
   depthKey,
   drawContinuousBackWall,
   drawContinuousLeftWall,
-  drawIsoFloorTile,
+  drawIsoGrassTile,
   drawNameTag,
   CHARACTER_DISPLAY_HEIGHT,
   drawPixelCharacter,
@@ -88,8 +88,8 @@ const FURNITURE_LAYERS: Record<string, number> = {
 
 const WALLPAPER: Record<string, string> = {
   wall_default: ROOM_COLORS.wall,
-  wall_blue: "#8898a8",
-  wall_pink: "#a88898",
+  wall_blue: "#a8c8e8",
+  wall_pink: "#e8a8b8",
 };
 
 /** ラグ中央が初期スポーン */
@@ -210,12 +210,11 @@ export function RoomCanvas({
       if (isRugCell(x, y)) {
         drawRugTile(ctx, sx, sy);
       } else if (isLoftCell(x, y)) {
-        drawIsoFloorTile(ctx, sx, sy, ROOM_COLORS.loftFloor, isHighlight || isPlayer, true, x + y);
+        drawIsoGrassTile(ctx, sx, sy, x + y + 1, isHighlight || isPlayer);
       } else if (isRampCell(x, y)) {
         drawRampTile(ctx, sx, sy, x + y);
       } else {
-        const checker = (x + y) % 2 === 0 ? ROOM_COLORS.floorA : ROOM_COLORS.floorB;
-        drawIsoFloorTile(ctx, sx, sy, checker, isHighlight || isPlayer, true, x + y);
+        drawIsoGrassTile(ctx, sx, sy, x + y, isHighlight || isPlayer);
       }
     }
 
@@ -435,7 +434,7 @@ export function RoomCanvas({
   return (
     <div
       ref={containerRef}
-      className="relative w-full overflow-hidden rounded-xl border-4 border-[#584028] shadow-lg"
+      className="relative w-full overflow-hidden rounded-lg border-4 border-[#886040] shadow-md bg-[#68b848]"
       style={{ imageRendering: "pixelated" }}
     >
       <canvas
@@ -458,7 +457,7 @@ export function RoomCanvas({
             <button
               key={dir}
               onClick={() => movePlayer(dir)}
-              className="w-10 h-10 bg-[#f0e8d8] text-[#4a4030] rounded border-2 border-[#8b6914] text-sm"
+              className="w-10 h-10 bg-[#f8f0d8] text-[#483830] rounded border-2 border-[#886040] text-sm font-bold"
               style={{ imageRendering: "pixelated" }}
             >
               {{ up: "↑", down: "↓", left: "←", right: "→" }[dir]}
