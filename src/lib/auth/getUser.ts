@@ -109,7 +109,7 @@ export async function ensureUserSetup(userId: string, email: string) {
   return user;
 }
 
-async function ensureRoomRecord(userId: string) {
+export async function ensureRoomRecord(userId: string) {
   const existing = await prisma.room.findUnique({ where: { userId } });
   if (existing) return existing;
 

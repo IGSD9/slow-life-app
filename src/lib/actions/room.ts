@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
-import { getAuthUser, ensureUserSetup } from "@/lib/auth/getUser";
+import { getAuthUser, ensureUserSetup, ensureRoomRecord } from "@/lib/auth/getUser";
 import { syncAdminPrivileges } from "@/lib/admin";
 import { areFriends } from "@/lib/actions/friend";
 import { GRID_HEIGHT, GRID_WIDTH, type PlacedFurniture, type RoomLayout } from "@/types/room";
@@ -30,7 +30,11 @@ export async function getRoom(userId?: string) {
   await ensureUserSetup(authUser.id, authUser.email);
   await syncAdminPrivileges(authUser.id, authUser.email);
 
-  return prisma.room.findUnique({
+  if (targetId === authUser.id) {
+    await ensureRoomRecord(authUser.id);
+  }
+
+  const room = await prisma.room.findUnique({
     where: { userId: targetId },
     include: {
       user: {
@@ -41,6 +45,8 @@ export async function getRoom(userId?: string) {
       },
     },
   });
+
+  return room;
 }
 
 export async function saveRoomLayout(input: {
