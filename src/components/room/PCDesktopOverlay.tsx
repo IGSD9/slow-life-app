@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Power, Gamepad2 } from "lucide-react";
 import Link from "next/link";
 import { GAME_REGISTRY } from "@/games/engine";
+import { IdleRewardsPanel } from "@/components/room/IdleRewardsPanel";
 
 interface PCDesktopOverlayProps {
   onClose: () => void;
@@ -14,6 +15,8 @@ const GAME_ICONS: Record<string, string> = {
   solitaire: "🃏",
   scroll_action: "🏃",
   fighting: "👊",
+  real_fps: "🎯",
+  dungeon_village: "🏰",
 };
 
 const GAME_DESC: Record<string, string> = {
@@ -21,6 +24,8 @@ const GAME_DESC: Record<string, string> = {
   solitaire: "トランプで一人遊び",
   scroll_action: "横スクロールアクション",
   fighting: "CPUと大乱闘",
+  real_fps: "超高画質3D · ネオンFPS",
+  dungeon_village: "Phaser · 冒険ダンジョン村",
 };
 
 export function PCDesktopOverlay({ onClose }: PCDesktopOverlayProps) {
@@ -62,7 +67,7 @@ export function PCDesktopOverlay({ onClose }: PCDesktopOverlayProps) {
               <h2 className="text-lg font-bold text-white">ミニゲーム</h2>
               <span className="text-xs text-[#9494b0]">アイコンをタップして起動</span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {games.map((game) => (
                 <Link
                   key={game.gameId}
@@ -78,13 +83,9 @@ export function PCDesktopOverlay({ onClose }: PCDesktopOverlayProps) {
                   </span>
                 </Link>
               ))}
-              {/* 今後追加用プレースホルダー */}
-              <div className="flex flex-col items-center gap-2 p-4 rounded-xl border border-dashed border-white/15 opacity-50">
-                <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center text-2xl text-[#8888a8]">
-                  ＋
-                </div>
-                <span className="text-xs text-[#8888a8]">Coming Soon</span>
-              </div>
+            </div>
+            <div className="mt-8 max-w-sm">
+              <IdleRewardsPanel />
             </div>
           </div>
         </div>

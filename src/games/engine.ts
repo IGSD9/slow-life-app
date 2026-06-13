@@ -41,6 +41,18 @@ export const GAME_REGISTRY: Record<string, MiniGameConfig> = {
     expMultiplier: 0.1,
     route: "/games/fighting",
   },
+  real_fps: {
+    gameId: "real_fps",
+    name: "ネオンFPS",
+    expMultiplier: 0.5,
+    route: "/games/real-fps",
+  },
+  dungeon_village: {
+    gameId: "dungeon_village",
+    name: "冒険ダンジョン村",
+    expMultiplier: 0.15,
+    route: "/games/dungeon-village",
+  },
 };
 
 export function calcExpFromScore(score: number, gameId: string): number {

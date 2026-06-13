@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Pencil, Check, Monitor } from "lucide-react";
+import Link from "next/link";
+import { Pencil, Check, Monitor, Shirt, Heart } from "lucide-react";
 import { RoomCanvas } from "@/components/room/RoomCanvas";
 import { FurniturePalette } from "@/components/room/FurniturePalette";
 import { RoomDecorPicker } from "@/components/room/RoomDecorPicker";
 import { PCProximityPrompt } from "@/components/room/PCProximityPrompt";
 import { PCDesktopOverlay } from "@/components/room/PCDesktopOverlay";
+import { ClosetShareModal } from "@/components/room/ClosetShareModal";
+import { IdleRewardsPanel } from "@/components/room/IdleRewardsPanel";
 import { LevelBar } from "@/components/ui/LevelBar";
 import { Button } from "@/components/ui/Button";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
@@ -58,6 +61,7 @@ export default function RoomPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [nearPC, setNearPC] = useState(false);
   const [showDesktop, setShowDesktop] = useState(false);
+  const [showCloset, setShowCloset] = useState(false);
   const [selectedPos, setSelectedPos] = useState({ gridX: 6, gridY: 7 });
   const [layout, setLayout] = useState<RoomLayout>([]);
   const [wallpaperId, setWallpaperId] = useState("wall_default");
@@ -111,7 +115,7 @@ export default function RoomPage() {
   const avatarConfig = (profile?.avatarConfig ?? {}) as AvatarConfig;
   const userId = room?.user.id ?? "";
 
-  const { remotePlayers, playerPos, direction, movePlayer, stamps } = useRoomSync({
+  const { remotePlayers, playerPos, direction, movePlayer, stamps, applyClosetTryOn, selfTryOnConfig } = useRoomSync({
     roomId: userId,
     userId,
     self: {
@@ -123,6 +127,8 @@ export default function RoomPage() {
     },
     enabled: !!userId && !isEditing,
   });
+
+  const effectiveAvatarConfig = selfTryOnConfig ?? avatarConfig;
 
   const handleSave = async () => {
     const res = await fetch("/api/room", {
@@ -217,7 +223,7 @@ export default function RoomPage() {
         <RoomCanvas
           layout={layout}
           items={items}
-          avatarConfig={avatarConfig}
+          avatarConfig={effectiveAvatarConfig}
           displayName={profile?.displayName}
           titleName={profile?.title?.name}
           isAdmin={profile?.isAdmin}
@@ -237,7 +243,25 @@ export default function RoomPage() {
         {!isEditing && nearPC && !showDesktop && (
           <PCProximityPrompt onLaunch={() => setShowDesktop(true)} />
         )}
+        {!isEditing && nearPC && !showDesktop && (
+          <div className="absolute bottom-2 left-2 right-2 max-w-xs">
+            <IdleRewardsPanel compact />
+          </div>
+        )}
       </div>
+
+      {!isEditing && (
+        <div className="flex gap-2 justify-center flex-wrap">
+          <Button size="sm" variant="secondary" onClick={() => setShowCloset(true)}>
+            <Shirt size={14} className="mr-1" /> クローゼット
+          </Button>
+          <Link href="/room/shared">
+            <Button size="sm" variant="secondary">
+              <Heart size={14} className="mr-1" /> 新婚ハウス
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {!isEditing && remotePlayers.length > 0 && (
         <p className="text-[10px] text-[#8888a8] text-center">
@@ -277,6 +301,15 @@ export default function RoomPage() {
       )}
 
       {showDesktop && <PCDesktopOverlay onClose={() => setShowDesktop(false)} />}
+
+      <ClosetShareModal
+        open={showCloset}
+        onClose={() => setShowCloset(false)}
+        friendsInRoom={remotePlayers}
+        clothingInventory={room.user.inventory}
+        hostAvatarConfig={avatarConfig}
+        onApplyTryOn={applyClosetTryOn}
+      />
 
       {profile && (
         <ImageLightbox

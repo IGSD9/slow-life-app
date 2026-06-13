@@ -60,15 +60,19 @@ export async function acceptMarriage(partnerId: string) {
   }
 
   const now = new Date();
+  const marriageId = crypto.randomUUID();
 
   await prisma.$transaction(async (tx) => {
     await tx.friendship.update({
       where: { id: incoming.id },
-      data: { isMarried: true, marriedAt: now, marriageProposalFrom: null },
+      data: { isMarried: true, marriedAt: now, marriageProposalFrom: null, marriageId },
     });
     await tx.friendship.updateMany({
       where: { userId: partnerId, friendId: me.id },
-      data: { isMarried: true, marriedAt: now, marriageProposalFrom: null },
+      data: { isMarried: true, marriedAt: now, marriageProposalFrom: null, marriageId },
+    });
+    await tx.sharedRoom.create({
+      data: { marriageId },
     });
   });
 

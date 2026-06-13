@@ -13,10 +13,12 @@ const GAME_MISSION_MAP: Record<string, string[]> = {
   solitaire: ["ソリティア"],
   scroll_action: ["アクション"],
   fighting: ["大乱闘", "格闘"],
+  real_fps: ["FPS", "シューティング"],
+  dungeon_village: ["ダンジョン", "冒険"],
 };
 
 export async function submitGameScore(input: {
-  gameId: "tetris" | "solitaire" | "scroll_action" | "fighting";
+  gameId: "tetris" | "solitaire" | "scroll_action" | "fighting" | "real_fps" | "dungeon_village";
   score: number;
 }) {
   const authUser = await getAuthUser();
@@ -70,6 +72,26 @@ export async function submitGameScore(input: {
 
   revalidatePath("/missions");
   revalidatePath("/battle-pass");
+  return {
+    ...result,
+    expGain,
+    rewards: result.rewards?.map((r) => ({ id: r.id, name: r.name })) ?? [],
+  };
+}
+
+export async function submitFpsClear() {
+  const authUser = await getAuthUser();
+  if (!authUser?.email) return { success: false, error: "UNAUTHORIZED" };
+
+  const expGain = 50;
+  const result = await grantExp(expGain);
+  if (!result.success) return result;
+
+  await addBattlePassExp(authUser.id, Math.ceil(expGain * 0.5));
+
+  revalidatePath("/missions");
+  revalidatePath("/battle-pass");
+  revalidatePath("/profile");
   return {
     ...result,
     expGain,

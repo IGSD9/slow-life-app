@@ -71,7 +71,7 @@ export default function VisitRoomPage() {
   const selfProfile = me?.profile;
   const avatarConfig = (selfProfile?.avatarConfig ?? {}) as AvatarConfig;
 
-  const { remotePlayers, playerPos, direction, movePlayer, shareOutfit, sendStamp, stamps, broadcast } = useRoomSync({
+  const { remotePlayers, playerPos, direction, movePlayer, shareOutfit, sendStamp, stamps, broadcast, selfTryOnConfig } = useRoomSync({
     roomId: hostUserId,
     userId: me?.id ?? "",
     self: {
@@ -83,6 +83,8 @@ export default function VisitRoomPage() {
     },
     enabled: !!me?.id,
   });
+
+  const effectiveAvatarConfig = selfTryOnConfig ?? avatarConfig;
 
   const handleMove = useCallback(
     (x: number, y: number, dir?: "up" | "down" | "left" | "right") => {
@@ -141,7 +143,7 @@ export default function VisitRoomPage() {
       <RoomCanvas
         layout={(room.layoutData as RoomLayout) ?? []}
         items={hostItems}
-        avatarConfig={avatarConfig}
+        avatarConfig={effectiveAvatarConfig}
         displayName={selfProfile?.displayName}
         titleName={selfProfile?.title?.name}
         isAdmin={selfProfile?.isAdmin}

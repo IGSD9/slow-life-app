@@ -28,9 +28,13 @@ export function useRoomSync({
   const [playerPos, setPlayerPos] = useState({ gridX: 6, gridY: 7 });
   const [direction, setDirection] = useState<Direction>("down");
   const [outfitPreviews, setOutfitPreviews] = useState<Map<string, AvatarConfig>>(new Map());
+  const [tryOnStates, setTryOnStates] = useState<Map<string, AvatarConfig>>(new Map());
+  const [selfTryOnConfig, setSelfTryOnConfig] = useState<AvatarConfig | null>(null);
   const [stamps, setStamps] = useState<RoomStamp[]>([]);
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null);
   const lastTrackRef = useRef(0);
+  const tryOnStatesRef = useRef(tryOnStates);
+  tryOnStatesRef.current = tryOnStates;
 
   const trackPosition = useCallback(
     async (gridX: number, gridY: number, dir: Direction) => {
@@ -74,6 +78,26 @@ export function useRoomSync({
     [broadcast, userId],
   );
 
+  const applyClosetTryOn = useCallback(
+    (targetUserId: string, config: AvatarConfig) => {
+      broadcast({
+        type: "closet_tryon",
+        fromUserId: userId,
+        targetUserId,
+        config,
+      });
+      setTryOnStates((prev) => {
+        const next = new Map(prev);
+        next.set(targetUserId, config);
+        return next;
+      });
+      if (targetUserId === userId) {
+        setSelfTryOnConfig(config);
+      }
+    },
+    [broadcast, userId],
+  );
+
   const sendStamp = useCallback(
     (stampId: string, gridX: number, gridY: number) => {
       broadcast({ type: "stamp", fromUserId: userId, stampId, gridX, gridY });
@@ -83,6 +107,26 @@ export function useRoomSync({
       ]);
     },
     [broadcast, userId],
+  );
+
+  const buildPlayers = useCallback(
+    (state: Record<string, PresencePayload[]>, tryOn: Map<string, AvatarConfig>) => {
+      const players: RoomPlayer[] = [];
+      for (const presences of Object.values(state)) {
+        for (const p of presences) {
+          if (p.userId && p.userId !== userId) {
+            players.push({
+              ...p,
+              isSelf: false,
+              previewConfig: outfitPreviews.get(p.userId),
+              tryOnConfig: tryOn.get(p.userId),
+            });
+          }
+        }
+      }
+      return players;
+    },
+    [userId, outfitPreviews],
   );
 
   useEffect(() => {
@@ -97,16 +141,17 @@ export function useRoomSync({
     channel
       .on("presence", { event: "sync" }, () => {
         const state = channel.presenceState<PresencePayload>();
-        const players: RoomPlayer[] = [];
-        for (const presences of Object.values(state)) {
-          for (const p of presences) {
-            if (p.userId && p.userId !== userId) {
-              const preview = outfitPreviews.get(p.userId);
-              players.push({ ...p, isSelf: false, previewConfig: preview });
-            }
-          }
+        setRemotePlayers(buildPlayers(state, tryOnStatesRef.current));
+      })
+      .on("presence", { event: "leave" }, ({ key }) => {
+        setTryOnStates((prev) => {
+          const next = new Map(prev);
+          next.delete(key);
+          return next;
+        });
+        if (key === userId) {
+          setSelfTryOnConfig(null);
         }
-        setRemotePlayers(players);
       })
       .on("broadcast", { event: "outfit_share" }, ({ payload }) => {
         const evt = payload as RoomBroadcastEvent;
@@ -123,6 +168,18 @@ export function useRoomSync({
             return next;
           });
         }, 30_000);
+      })
+      .on("broadcast", { event: "closet_tryon" }, ({ payload }) => {
+        const evt = payload as RoomBroadcastEvent;
+        if (evt.type !== "closet_tryon") return;
+        setTryOnStates((prev) => {
+          const next = new Map(prev);
+          next.set(evt.targetUserId, evt.config);
+          return next;
+        });
+        if (evt.targetUserId === userId) {
+          setSelfTryOnConfig(evt.config);
+        }
       })
       .on("broadcast", { event: "stamp" }, ({ payload }) => {
         const evt = payload as RoomBroadcastEvent;
@@ -155,19 +212,22 @@ export function useRoomSync({
       });
 
     return () => {
+      setSelfTryOnConfig(null);
+      setTryOnStates(new Map());
       supabase.removeChannel(channel);
       channelRef.current = null;
     };
-  }, [enabled, roomId, userId, self.displayName, self.titleName, self.isAdmin]);
+  }, [enabled, roomId, userId, self.displayName, self.titleName, self.isAdmin, buildPlayers]);
 
   useEffect(() => {
     setRemotePlayers((prev) =>
       prev.map((p) => ({
         ...p,
         previewConfig: outfitPreviews.get(p.userId),
+        tryOnConfig: tryOnStates.get(p.userId),
       })),
     );
-  }, [outfitPreviews]);
+  }, [outfitPreviews, tryOnStates]);
 
   const movePlayer = useCallback(
     (gridX: number, gridY: number, dir: Direction) => {
@@ -186,6 +246,8 @@ export function useRoomSync({
     setPlayerPos,
     setDirection,
     shareOutfit,
+    applyClosetTryOn,
+    selfTryOnConfig,
     sendStamp,
     stamps,
     broadcast,

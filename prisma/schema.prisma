@@ -40,6 +40,7 @@ model Profile {
   isAdmin          Boolean  @default(false)
   coins            Int      @default(500)
   gems             Int      @default(0)
+  lastCollectedAt  DateTime @default(now())
   titleId          String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -122,9 +123,10 @@ model Friendship {
   friendId  String
   status    FriendshipStatus @default(PENDING)
   affinity  Int              @default(0)
-  isMarried Boolean          @default(false)
-  marriedAt DateTime?
+  isMarried            Boolean   @default(false)
+  marriedAt            DateTime?
   marriageProposalFrom String?
+  marriageId           String?   @unique
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
@@ -133,6 +135,16 @@ model Friendship {
 
   @@unique([userId, friendId])
   @@index([userId, affinity])
+}
+
+model SharedRoom {
+  id          String   @id @default(cuid())
+  marriageId  String   @unique
+  wallpaperId String   @default("wall_default")
+  floorId     String   @default("floor_default")
+  layoutData  Json     @default("[]")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model LevelReward {

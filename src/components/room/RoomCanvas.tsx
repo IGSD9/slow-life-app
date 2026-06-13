@@ -266,7 +266,7 @@ export function RoomCanvas({
         rp.gridX,
         rp.gridY,
         rp.displayName,
-        rp.previewConfig ?? rp.avatarConfig,
+        rp.tryOnConfig ?? rp.previewConfig ?? rp.avatarConfig,
         rp.direction ?? "down",
         rp.titleName,
         rp.isAdmin,

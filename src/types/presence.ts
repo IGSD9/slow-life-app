@@ -16,6 +16,8 @@ export interface RoomPlayer extends PresencePayload {
   isSelf?: boolean;
   /** 試着共有で一時的に上書きされたコーデ */
   previewConfig?: AvatarConfig;
+  /** クローゼット試着（部屋内のみ） */
+  tryOnConfig?: AvatarConfig;
 }
 
 export interface OutfitShareEvent {
@@ -38,7 +40,28 @@ export interface TradeRequestEvent {
   fromUserId: string;
 }
 
-export type RoomBroadcastEvent = OutfitShareEvent | StampEvent | TradeRequestEvent;
+export interface ClosetTryOnEvent {
+  type: "closet_tryon";
+  fromUserId: string;
+  targetUserId: string;
+  config: AvatarConfig;
+}
+
+export interface FurnitureMoveEvent {
+  type: "furniture_move";
+  fromUserId: string;
+  itemId: string;
+  gridX: number;
+  gridY: number;
+  rotation?: number;
+}
+
+export type RoomBroadcastEvent =
+  | OutfitShareEvent
+  | StampEvent
+  | TradeRequestEvent
+  | ClosetTryOnEvent
+  | FurnitureMoveEvent;
 
 export interface RoomStamp {
   id: string;
