@@ -14,14 +14,25 @@ export async function getAuthUser() {
 }
 
 export async function ensureUserSetup(userId: string, email: string) {
-  const existing = await prisma.user.findUnique({ where: { id: userId } });
+  const existing = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { room: true, profile: true },
+  });
   if (existing) {
     if (existing.email.toLowerCase() !== email.toLowerCase()) {
       await prisma.user.update({
         where: { id: userId },
         data: { email },
       });
-      return { ...existing, email };
+    }
+    await ensureRoomRecord(userId);
+    if (!existing.profile) {
+      await prisma.profile.create({
+        data: {
+          userId,
+          displayName: email.split("@")[0].slice(0, 20),
+        },
+      });
     }
     return existing;
   }
@@ -96,4 +107,50 @@ export async function ensureUserSetup(userId: string, email: string) {
   }
 
   return user;
+}
+
+async function ensureRoomRecord(userId: string) {
+  const existing = await prisma.room.findUnique({ where: { userId } });
+  if (existing) return existing;
+
+  const pcItem = await prisma.itemMaster.findFirst({
+    where: { spriteKey: "furniture_pc_01" },
+  });
+
+  const layoutData: RoomLayout = pcItem
+    ? [
+        {
+          inventoryItemId: "pending",
+          itemId: pcItem.id,
+          gridX: INITIAL_PC_POSITION.gridX,
+          gridY: INITIAL_PC_POSITION.gridY,
+          rotation: 0,
+          zIndex: 1,
+        },
+      ]
+    : [];
+
+  const room = await prisma.room.create({
+    data: {
+      userId,
+      layoutData: layoutData as unknown as Prisma.InputJsonValue,
+    },
+  });
+
+  if (pcItem) {
+    const pcInventory = await prisma.inventoryItem.upsert({
+      where: { userId_itemId: { userId, itemId: pcItem.id } },
+      create: { userId, itemId: pcItem.id, isPlaced: true },
+      update: { isPlaced: true },
+    });
+    const layout = layoutData.map((f) =>
+      f.itemId === pcItem.id ? { ...f, inventoryItemId: pcInventory.id } : f,
+    );
+    await prisma.room.update({
+      where: { userId },
+      data: { layoutData: layout as unknown as Prisma.InputJsonValue },
+    });
+  }
+
+  return room;
 }

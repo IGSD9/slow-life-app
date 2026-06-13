@@ -54,6 +54,7 @@ interface RoomData {
 export default function RoomPage() {
   const [room, setRoom] = useState<RoomData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [nearPC, setNearPC] = useState(false);
   const [showDesktop, setShowDesktop] = useState(false);
@@ -64,13 +65,31 @@ export default function RoomPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const fetchRoom = useCallback(async () => {
-    const res = await fetch("/api/room", { cache: "no-store" });
-    if (res.ok) {
-      const data = await res.json();
-      setRoom(data);
-      setLayout(data.layoutData ?? []);
-      setWallpaperId(data.wallpaperId ?? "wall_default");
-      setFloorId(data.floorId ?? "floor_default");
+    setFetchError(null);
+    try {
+      const res = await fetch("/api/room", { cache: "no-store" });
+      if (res.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      if (res.ok) {
+        const data = await res.json();
+        setRoom(data);
+        setLayout(data.layoutData ?? []);
+        setWallpaperId(data.wallpaperId ?? "wall_default");
+        setFloorId(data.floorId ?? "floor_default");
+      } else {
+        const body = await res.json().catch(() => ({}));
+        setFetchError(
+          res.status === 500
+            ? "サーバーエラーが発生しました。しばらく待ってから再読み込みしてください。"
+            : body.error === "NOT_FOUND"
+              ? "部屋データが見つかりません。"
+              : "部屋データの取得に失敗しました。",
+        );
+      }
+    } catch {
+      setFetchError("通信エラーが発生しました。ネットワークを確認してください。");
     }
     setLoading(false);
   }, []);
@@ -146,8 +165,13 @@ export default function RoomPage() {
 
   if (!room) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-red-400">部屋データの取得に失敗しました</p>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-3 px-4">
+        <p className="text-red-400 text-center">
+          {fetchError ?? "部屋データの取得に失敗しました"}
+        </p>
+        <Button size="sm" variant="secondary" onClick={() => { setLoading(true); fetchRoom(); }}>
+          再読み込み
+        </Button>
       </div>
     );
   }
