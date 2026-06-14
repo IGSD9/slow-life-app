@@ -7,9 +7,10 @@ export function getSupabaseUrl(): string {
 }
 
 export function getSupabaseAnonKey(): string {
+  // 新 Publishable key を優先（Vercel に旧 ANON_KEY が残っていると Invalid API key になる）
   const key =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!key) {
     throw new Error(
       "NEXT_PUBLIC_SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required",
@@ -20,8 +21,8 @@ export function getSupabaseAnonKey(): string {
 
 export function getSupabaseServiceRoleKey(): string {
   const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ??
-    process.env.SUPABASE_SECRET_KEY;
+    process.env.SUPABASE_SECRET_KEY ??
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!key) {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY is required");
   }
