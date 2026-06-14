@@ -63,7 +63,7 @@ export default function SharedRoomPage() {
     load();
   }, [load]);
 
-  const { partnerOnline } = useSharedRoomSync({
+  const { partnerOnline, broadcastLayoutSync } = useSharedRoomSync({
     marriageId,
     userId,
     enabled: !!marriageId && !!userId,
@@ -73,6 +73,7 @@ export default function SharedRoomPage() {
 
   const handleSave = async () => {
     await saveSharedRoomLayout({ layoutData: layout, wallpaperId, floorId });
+    await broadcastLayoutSync(layout);
     setIsEditing(false);
   };
 
@@ -85,6 +86,7 @@ export default function SharedRoomPage() {
     });
     if (res.success) {
       setLayout(res.layoutData);
+      await broadcastLayoutSync(res.layoutData);
       const inv = await getSharedRoomInventory();
       if (inv.success) setInventory(inv.items);
     }

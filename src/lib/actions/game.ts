@@ -14,11 +14,10 @@ const GAME_MISSION_MAP: Record<string, string[]> = {
   scroll_action: ["アクション"],
   fighting: ["大乱闘", "格闘"],
   real_fps: ["FPS", "シューティング"],
-  dungeon_village: ["ダンジョン", "冒険"],
 };
 
 export async function submitGameScore(input: {
-  gameId: "tetris" | "solitaire" | "scroll_action" | "fighting" | "real_fps" | "dungeon_village";
+  gameId: "tetris" | "solitaire" | "scroll_action" | "fighting" | "real_fps";
   score: number;
 }) {
   const authUser = await getAuthUser();

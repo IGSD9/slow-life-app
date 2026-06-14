@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { useFillCanvas } from "@/hooks/useFillCanvas";
 
 const COLS = 10;
 const ROWS = 20;
@@ -73,6 +74,9 @@ interface TetrisGameProps {
 
 export function TetrisGame({ onGameOver }: TetrisGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasW = COLS * BLOCK;
+  const canvasH = ROWS * BLOCK;
+  const { containerRef, displaySize } = useFillCanvas(canvasW, canvasH);
   const [board, setBoard] = useState<(string | null)[][]>(
     Array.from({ length: ROWS }, () => Array(COLS).fill(null)),
   );
@@ -169,8 +173,15 @@ export function TetrisGame({ onGameOver }: TetrisGameProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.fillStyle = "#0a0a14";
-    ctx.fillRect(0, 0, COLS * BLOCK, ROWS * BLOCK);
+    ctx.fillStyle = "#0a0818";
+    ctx.fillRect(0, 0, canvasW, canvasH);
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        ctx.strokeStyle = "rgba(0,212,255,0.08)";
+        ctx.strokeRect(c * BLOCK, r * BLOCK, BLOCK, BLOCK);
+      }
+    }
 
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
@@ -178,6 +189,8 @@ export function TetrisGame({ onGameOver }: TetrisGameProps) {
         if (cell) {
           ctx.fillStyle = COLORS[cell] ?? "#888";
           ctx.fillRect(c * BLOCK + 1, r * BLOCK + 1, BLOCK - 2, BLOCK - 2);
+          ctx.strokeStyle = "#ffffff44";
+          ctx.strokeRect(c * BLOCK + 1, r * BLOCK + 1, BLOCK - 2, BLOCK - 2);
         }
       }
     }
@@ -192,9 +205,16 @@ export function TetrisGame({ onGameOver }: TetrisGameProps) {
           BLOCK - 2,
           BLOCK - 2,
         );
+        ctx.strokeStyle = "#ffffff66";
+        ctx.strokeRect(
+          (piece.x + c) * BLOCK + 1,
+          (piece.y + r) * BLOCK + 1,
+          BLOCK - 2,
+          BLOCK - 2,
+        );
       }
     }
-  }, [board, piece]);
+  }, [board, piece, canvasW, canvasH]);
 
   const move = (dx: number) => {
     const moved = { ...piece, x: piece.x + dx };
@@ -240,30 +260,36 @@ export function TetrisGame({ onGameOver }: TetrisGameProps) {
   });
 
   return (
-    <div className="flex flex-col items-center gap-4">
-      <div className="flex items-center justify-between w-full max-w-[240px]">
-        <span className="text-sm font-bold text-[#ff6b9d]">SCORE: {score}</span>
+    <div ref={containerRef} className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-2">
+      <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+        <span
+          className="text-sm font-bold text-[#00d4ff]"
+          style={{ textShadow: "1px 1px 0 #201820, 0 0 8px #ff6b9d" }}
+        >
+          SCORE: {score}
+        </span>
         {paused && <span className="text-xs text-yellow-400">PAUSED</span>}
       </div>
       <canvas
         ref={canvasRef}
-        width={COLS * BLOCK}
-        height={ROWS * BLOCK}
-        className="border-2 border-[#ff6b9d]/40 rounded"
-        style={{ imageRendering: "pixelated" }}
+        width={canvasW}
+        height={canvasH}
+        style={{ width: displaySize.w, height: displaySize.h, imageRendering: "pixelated" }}
       />
       {gameOver && (
-        <p className="text-lg font-bold text-[#ff6b9d]">GAME OVER</p>
+        <p
+          className="absolute bottom-16 text-xl font-bold text-[#ff6b9d]"
+          style={{ textShadow: "2px 2px 0 #201820" }}
+        >
+          GAME OVER
+        </p>
       )}
-      <div className="flex gap-2 md:hidden">
+      <div className="absolute bottom-3 flex gap-2 md:hidden">
         <Button size="sm" variant="secondary" onClick={() => move(-1)}>←</Button>
         <Button size="sm" variant="secondary" onClick={rotatePiece}>回転</Button>
         <Button size="sm" variant="secondary" onClick={() => move(1)}>→</Button>
         <Button size="sm" variant="secondary" onClick={hardDrop}>落下</Button>
       </div>
-      <p className="text-[10px] text-[#8888a8]">
-        PC: 矢印キー移動/回転、Space落下 / スマホ: ボタン操作
-      </p>
     </div>
   );
 }

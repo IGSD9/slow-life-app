@@ -53,6 +53,7 @@ export function PhaserGameContainer({
 
           const player = this.add.container(80, height - 80);
           player.add([
+            this.add.rectangle(0, 18, 16, 8, hexColor(colors.shoes)),
             this.add.rectangle(0, 14, 18, 12, hexColor(colors.pants)),
             this.add.rectangle(0, 0, 20, 28, hexColor(colors.shirt)),
             this.add.circle(0, -20, 10, hexColor(colors.skin)),

@@ -15,6 +15,12 @@ export interface FurnitureMovePayload {
   rotation?: Rotation;
 }
 
+export interface LayoutSyncPayload {
+  type: "layout_sync";
+  fromUserId: string;
+  layoutData: RoomLayout;
+}
+
 interface UseSharedRoomSyncOptions {
   marriageId: string;
   userId: string;
@@ -73,6 +79,24 @@ export function useSharedRoomSync({
     [applyLocalMove, broadcastMove],
   );
 
+  const broadcastLayoutSync = useCallback(
+    async (layoutData: RoomLayout) => {
+      const channel = channelRef.current;
+      if (!channel) return;
+      layoutRef.current = layoutData;
+      await channel.send({
+        type: "broadcast",
+        event: "layout_sync",
+        payload: {
+          type: "layout_sync",
+          fromUserId: userId,
+          layoutData,
+        } satisfies LayoutSyncPayload,
+      });
+    },
+    [userId],
+  );
+
   useEffect(() => {
     if (!enabled || !marriageId || !userId) return;
 
@@ -93,6 +117,12 @@ export function useSharedRoomSync({
         if (evt.fromUserId === userId) return;
         applyLocalMove(evt.instanceKey, evt.gridX, evt.gridY, evt.rotation);
       })
+      .on("broadcast", { event: "layout_sync" }, ({ payload }) => {
+        const evt = payload as LayoutSyncPayload;
+        if (evt.fromUserId === userId) return;
+        layoutRef.current = evt.layoutData;
+        onLayoutChange(evt.layoutData);
+      })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({ userId });
@@ -103,7 +133,7 @@ export function useSharedRoomSync({
       supabase.removeChannel(channel);
       channelRef.current = null;
     };
-  }, [enabled, marriageId, userId, applyLocalMove]);
+  }, [enabled, marriageId, userId, applyLocalMove, onLayoutChange]);
 
-  return { partnerOnline, moveFurniture, broadcastMove };
+  return { partnerOnline, moveFurniture, broadcastMove, broadcastLayoutSync };
 }

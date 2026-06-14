@@ -155,6 +155,56 @@ function Bullets({
   );
 }
 
+function TouchLookControls({ onTapFire }: { onTapFire: () => void }) {
+  const { camera, gl } = useThree();
+  const touchStart = useRef<{ x: number; y: number; t: number } | null>(null);
+
+  useEffect(() => {
+    const el = gl.domElement;
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      touchStart.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        t: Date.now(),
+      };
+    };
+    const onMove = (e: TouchEvent) => {
+      if (!touchStart.current || e.touches.length !== 1) return;
+      const dx = e.touches[0].clientX - touchStart.current.x;
+      const dy = e.touches[0].clientY - touchStart.current.y;
+      touchStart.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        t: touchStart.current.t,
+      };
+      camera.rotation.order = "YXZ";
+      camera.rotation.y -= dx * 0.004;
+      camera.rotation.x = Math.max(-1.2, Math.min(1.2, camera.rotation.x - dy * 0.004));
+      e.preventDefault();
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (!touchStart.current) return;
+      const dt = Date.now() - touchStart.current.t;
+      const touch = e.changedTouches[0];
+      const dx = Math.abs(touch.clientX - touchStart.current.x);
+      const dy = Math.abs(touch.clientY - touchStart.current.y);
+      if (dt < 220 && dx < 12 && dy < 12) onTapFire();
+      touchStart.current = null;
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+    };
+  }, [camera, gl, onTapFire]);
+
+  return null;
+}
+
 function FpsScene({
   onAllClear,
 }: {
@@ -229,11 +279,12 @@ function FpsScene({
         onRemove={(id) => setBullets((prev) => prev.filter((b) => b.id !== id))}
       />
       <PointerLockControls />
+      <TouchLookControls onTapFire={fire} />
       <Text position={[0, 3, -4]} fontSize={0.4} color="#ff6b9d" anchorX="center">
         {`TARGETS: ${aliveCount}`}
       </Text>
       <Text position={[0, 2.4, -4]} fontSize={0.2} color="#9494b0" anchorX="center">
-        クリックで射撃 · ESCで解除
+        クリック/タップで射撃 · スワイプで視点 · ESCで解除
       </Text>
     </>
   );
@@ -247,7 +298,7 @@ export function RealFpsGame({ onClear }: RealFpsGameProps) {
   const [started, setStarted] = useState(false);
 
   return (
-    <div className="relative w-full h-[70vh] min-h-[400px] rounded-xl overflow-hidden border-2 border-[#ff6b9d]/40 shadow-[0_0_40px_rgba(255,107,157,0.2)]">
+    <div className="relative w-full h-full min-h-[320px] overflow-hidden">
       {!started && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
           <p className="text-white text-lg font-bold mb-2">ネオンFPS — 超高画質モード</p>
@@ -264,11 +315,28 @@ export function RealFpsGame({ onClear }: RealFpsGameProps) {
         </div>
       )}
       {started && (
-        <Canvas shadows camera={{ fov: 75, near: 0.1, far: 100 }}>
-          <Suspense fallback={null}>
-            <FpsScene onAllClear={onClear} />
-          </Suspense>
-        </Canvas>
+        <>
+          <Canvas shadows camera={{ fov: 75, near: 0.1, far: 100 }} className="w-full h-full">
+            <Suspense fallback={null}>
+              <FpsScene onAllClear={onClear} />
+            </Suspense>
+          </Canvas>
+          <div
+            className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
+            aria-hidden
+          >
+            <div
+              className="rounded-full"
+              style={{
+                width: 7,
+                height: 7,
+                background: "#ff6b9d",
+                border: "1px solid #ffffff",
+                boxShadow: "0 0 6px #ff6b9d, 0 0 10px #00ff88, 0 0 2px #ffffff",
+              }}
+            />
+          </div>
+        </>
       )}
     </div>
   );

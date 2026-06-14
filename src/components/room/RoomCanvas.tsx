@@ -14,9 +14,9 @@ import {
   depthKey,
   drawContinuousBackWall,
   drawContinuousLeftWall,
+  drawWallCornerJoin,
   drawIsoGrassTile,
   drawNameTag,
-  CHARACTER_DISPLAY_HEIGHT,
   drawPixelCharacter,
   drawPlatformBase,
   drawRoomBoundsOutline,
@@ -42,7 +42,6 @@ import {
   drawLoftCouch,
   drawLoftFrontFace,
   drawOutdoorPad,
-  drawRainyCityWindow,
   drawRampTile,
   drawRugTile,
   isRampCell,
@@ -222,7 +221,7 @@ export function RoomCanvas({
 
     drawContinuousBackWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
     drawContinuousLeftWall(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
-    drawRainyCityWindow(ctx, GRID_WIDTH, GRID_HEIGHT, ISO_WALL_LAYERS);
+    drawWallCornerJoin(ctx, GRID_WIDTH, GRID_HEIGHT, wallColor, ISO_WALL_LAYERS);
 
     drawLoftCouch(ctx, GRID_WIDTH, GRID_HEIGHT);
     drawGamingDesks(ctx, GRID_WIDTH, GRID_HEIGHT);
@@ -291,14 +290,6 @@ export function RoomCanvas({
       titleName,
       isAdmin,
     );
-
-    const pz = floorElevation(playerPos.gridX, playerPos.gridY);
-    const { x: px, y: sy } = gridToScreen(playerPos.gridX, playerPos.gridY, GRID_WIDTH, GRID_HEIGHT, pz);
-    const arrow = { up: "▲", down: "▼", left: "◀", right: "▶" }[direction];
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "11px monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(arrow, px, tileFootY(sy) - CHARACTER_DISPLAY_HEIGHT - 14);
 
     drawAmbientVignette(ctx, BW, BH);
 

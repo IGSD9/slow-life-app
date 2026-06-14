@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { TetrisGame } from "@/games/tetris";
-import { Button } from "@/components/ui/Button";
 import { GameResultScreen, submitScore } from "@/components/games/GameResultScreen";
+import { GameShell } from "@/components/games/GameShell";
+import { GAME_REGISTRY } from "@/games/engine";
 
 export default function TetrisPage() {
   const [result, setResult] = useState<Awaited<ReturnType<typeof submitScore>> | null>(null);
   const [key, setKey] = useState(0);
+  const game = GAME_REGISTRY.tetris;
 
   const handleGameOver = async (score: number) => {
     setResult(await submitScore("tetris", score));
@@ -18,7 +18,7 @@ export default function TetrisPage() {
   if (result) {
     return (
       <GameResultScreen
-        title="テトリス"
+        title={game.name}
         result={result}
         onRetry={() => {
           setResult(null);
@@ -29,16 +29,11 @@ export default function TetrisPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full pb-24">
-      <div className="flex items-center gap-2">
-        <Link href="/room">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft size={16} />
-          </Button>
-        </Link>
-        <h1 className="text-lg font-bold text-[#ff6b9d]">テトリス</h1>
-      </div>
+    <GameShell
+      title={game.name}
+      subtitle="ライン消去でサイバーエフェクトが走るガチパズル"
+    >
       <TetrisGame key={key} onGameOver={handleGameOver} />
-    </div>
+    </GameShell>
   );
 }

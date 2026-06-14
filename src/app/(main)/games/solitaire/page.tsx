@@ -3,18 +3,18 @@
 import { useState } from "react";
 import { SolitaireGame } from "@/games/solitaire";
 import { GameResultScreen, submitScore } from "@/components/games/GameResultScreen";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import { GameShell } from "@/components/games/GameShell";
+import { GAME_REGISTRY } from "@/games/engine";
 
 export default function SolitairePage() {
   const [result, setResult] = useState<Awaited<ReturnType<typeof submitScore>> | null>(null);
   const [key, setKey] = useState(0);
+  const game = GAME_REGISTRY.solitaire;
 
   if (result) {
     return (
       <GameResultScreen
-        title="ソリティア"
+        title={game.name}
         result={result}
         onRetry={() => { setResult(null); setKey((k) => k + 1); }}
       />
@@ -22,12 +22,13 @@ export default function SolitairePage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4 max-w-lg mx-auto w-full pb-24">
-      <div className="flex items-center gap-2">
-        <Link href="/room"><Button variant="ghost" size="sm"><ArrowLeft size={16} /></Button></Link>
-        <h1 className="text-lg font-bold text-[#ff6b9d]">ソリティア</h1>
+    <GameShell
+      title={game.name}
+      subtitle="ゴールドを賭けてフリードとスコアを競うトランプゲーム"
+    >
+      <div className="absolute inset-0 overflow-auto p-2 flex items-center justify-center">
+        <SolitaireGame key={key} onGameOver={(s) => submitScore("solitaire", s).then(setResult)} />
       </div>
-      <SolitaireGame key={key} onGameOver={(s) => submitScore("solitaire", s).then(setResult)} />
-    </div>
+    </GameShell>
   );
 }

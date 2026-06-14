@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { X, Power, Gamepad2 } from "lucide-react";
 import Link from "next/link";
-import { GAME_REGISTRY } from "@/games/engine";
+import { GAME_MENU_ORDER, GAME_REGISTRY } from "@/games/engine";
 import { IdleRewardsPanel } from "@/components/room/IdleRewardsPanel";
 
 interface PCDesktopOverlayProps {
@@ -16,27 +16,32 @@ const GAME_ICONS: Record<string, string> = {
   scroll_action: "🏃",
   fighting: "👊",
   real_fps: "🎯",
-  dungeon_village: "🏰",
 };
 
 const GAME_DESC: Record<string, string> = {
-  tetris: "ブロックを揃えて消そう",
-  solitaire: "トランプで一人遊び",
-  scroll_action: "横スクロールアクション",
-  fighting: "CPUと大乱闘",
-  real_fps: "超高画質3D · ネオンFPS",
-  dungeon_village: "Phaser · 冒険ダンジョン村",
+  tetris: "ライン消去でサイバーエフェクトが走るガチパズル",
+  solitaire: "ゴールドを賭けてフレンドとスコアを競うトランプゲーム",
+  scroll_action: "自分のアバターがそのまま走る、マリオ風のガチアクション",
+  fighting: "物理挙動を滑らかにし、エフェクトを派手にしたガチ格ゲー",
+  real_fps: "ここだけ世界が一転する、美麗3Dの超ハイスピードシューター",
+};
+
+const GAME_TAGS: Record<string, string> = {
+  tetris: "①",
+  solitaire: "②",
+  scroll_action: "③",
+  fighting: "④",
+  real_fps: "⑤",
 };
 
 export function PCDesktopOverlay({ onClose }: PCDesktopOverlayProps) {
   const [time] = useState(() =>
     new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
   );
-  const games = Object.values(GAME_REGISTRY);
+  const games = GAME_MENU_ORDER.map((id) => GAME_REGISTRY[id]).filter(Boolean);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#0a1628]">
-      {/* デスクトップ壁紙 */}
       <div
         className="flex-1 relative overflow-hidden"
         style={{
@@ -44,65 +49,119 @@ export function PCDesktopOverlay({ onClose }: PCDesktopOverlayProps) {
             "radial-gradient(ellipse at 30% 20%, #1e3a5f 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, #2d1b4e 0%, transparent 50%), linear-gradient(160deg, #0f2744 0%, #1a1030 50%, #0d1f35 100%)",
         }}
       >
-        {/* ウィンドウ風ヘッダー */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-black/30 backdrop-blur border border-white/10">
-            <div className="w-2 h-2 rounded-full bg-[#ff6b9d]" />
-            <span className="text-xs text-[#6a6a88] font-mono">SlowLife OS</span>
+          <div
+            className="flex items-center gap-2 px-3 py-1.5"
+            style={{
+              background: "#201820",
+              border: "3px solid #483830",
+              boxShadow: "inset 0 0 0 1px #886040",
+            }}
+          >
+            <div className="w-2 h-2 bg-[#68c848]" />
+            <span className="text-xs text-[#c8d8c0] font-mono" style={{ textShadow: "1px 1px 0 #201820" }}>
+              SlowLife OS
+            </span>
           </div>
           <button
             onClick={onClose}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-black/30 backdrop-blur border border-white/10 text-[#6a6a88] hover:text-[#ff6b9d] hover:border-[#ff6b9d]/50 transition-colors text-xs"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#c8d8c0] hover:text-[#68c848] transition-colors"
+            style={{
+              background: "#201820",
+              border: "3px solid #483830",
+              boxShadow: "inset 0 0 0 1px #886040, 0 3px 0 #100810",
+            }}
           >
             <Power size={14} />
             シャットダウン
           </button>
         </div>
 
-        {/* ゲームアイコン（デスクトップ） */}
-        <div className="absolute inset-0 flex items-center justify-center p-6">
-          <div className="w-full max-w-2xl">
-            <div className="flex items-center gap-2 mb-6">
-              <Gamepad2 size={20} className="text-[#ff6b9d]" />
-              <h2 className="text-lg font-bold text-white">ミニゲーム</h2>
-              <span className="text-xs text-[#9494b0]">アイコンをタップして起動</span>
+        <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="w-full max-w-3xl py-16">
+            <div className="flex items-center gap-2 mb-5">
+              <Gamepad2 size={20} className="text-[#68c848]" />
+              <h2
+                className="text-lg font-bold text-[#e8f0e0]"
+                style={{ textShadow: "2px 2px 0 #201820" }}
+              >
+                5大ガチタイトル
+              </h2>
+              <span className="text-xs text-[#9494b0] hidden sm:inline">アイコンをタップして起動</span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {games.map((game) => (
                 <Link
                   key={game.gameId}
                   href={game.route}
-                  className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#ff6b9d]/50 hover:scale-105 transition-all"
+                  className="group flex flex-col gap-2 p-3 sm:p-4 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                  style={{
+                    background: "linear-gradient(180deg, #302830 0%, #201820 100%)",
+                    border: "4px solid #483830",
+                    boxShadow: "inset 0 0 0 2px #886040, 0 4px 0 #100810",
+                  }}
                 >
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#ff6b9d]/30 to-[#533483]/40 flex items-center justify-center text-3xl shadow-lg group-hover:shadow-[#ff6b9d]/20">
-                    {GAME_ICONS[game.gameId] ?? "🎮"}
+                  <div className="flex items-start gap-2">
+                    <span
+                      className="text-[10px] font-bold text-[#68c848] shrink-0 mt-1"
+                      style={{ textShadow: "1px 1px 0 #201820" }}
+                    >
+                      {GAME_TAGS[game.gameId]}
+                    </span>
+                    <div
+                      className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center text-3xl shrink-0 group-hover:brightness-110"
+                      style={{
+                        background: "#1a2838",
+                        border: "3px solid #5090a0",
+                        boxShadow: "inset 0 0 12px #00d4ff30",
+                      }}
+                    >
+                      {GAME_ICONS[game.gameId] ?? "🎮"}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <span
+                        className="text-xs sm:text-sm font-bold text-[#e8f0e0] leading-tight block"
+                        style={{ textShadow: "1px 1px 0 #201820" }}
+                      >
+                        {game.name}
+                      </span>
+                      <span className="text-[10px] text-[#9494b0] leading-snug block mt-1">
+                        {GAME_DESC[game.gameId] ?? ""}
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-sm font-bold text-white text-center">{game.name}</span>
-                  <span className="text-[10px] text-[#9494b0] text-center leading-tight">
-                    {GAME_DESC[game.gameId] ?? ""}
-                  </span>
                 </Link>
               ))}
             </div>
-            <div className="mt-8 max-w-sm">
+
+            <div className="mt-6 max-w-sm">
               <IdleRewardsPanel />
             </div>
           </div>
         </div>
       </div>
 
-      {/* タスクバー */}
-      <div className="h-10 flex items-center justify-between px-4 bg-white/95 border-t border-[#ff6b9d]/20 backdrop-blur">
+      <div
+        className="h-10 flex items-center justify-between px-4"
+        style={{
+          background: "linear-gradient(180deg, #483830 0%, #302820 100%)",
+          borderTop: "3px solid #886040",
+        }}
+      >
         <div className="flex items-center gap-3">
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded flex items-center justify-center bg-[#ff6b9d]/20 hover:bg-[#ff6b9d]/40 transition-colors"
+            className="w-8 h-8 flex items-center justify-center transition-colors hover:bg-[#68c84820]"
+            style={{ border: "2px solid #886040", background: "#201820" }}
           >
-            <X size={16} className="text-white" />
+            <X size={16} className="text-[#c8d8c0]" />
           </button>
           <span className="text-[10px] text-[#9494b0] hidden sm:inline">スローライフ · 室内PC</span>
         </div>
-        <span className="text-xs text-[#6a6a88] font-mono">{time}</span>
+        <span className="text-xs text-[#68c848] font-mono" style={{ textShadow: "1px 1px 0 #201820" }}>
+          {time}
+        </span>
       </div>
     </div>
   );

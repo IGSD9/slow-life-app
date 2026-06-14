@@ -380,7 +380,7 @@ export function drawContinuousBackWall(
   const hw = ISO_TILE_W / 2;
   const hh = ISO_TILE_H / 2;
   const h = ISO_BLOCK_H * layers;
-  const x0 = 1;
+  const x0 = 0;
   const x1 = gridW - 2;
 
   const left = gridToScreen(x0, 0, gridW, gridH, 0);
@@ -457,7 +457,7 @@ export function drawContinuousLeftWall(
   const hw = ISO_TILE_W / 2;
   const hh = ISO_TILE_H / 2;
   const h = ISO_BLOCK_H * layers;
-  const y0 = 1;
+  const y0 = 0;
   const y1 = gridH - 1;
 
   const back = gridToScreen(0, y0, gridW, gridH, 0);
@@ -505,6 +505,55 @@ export function drawContinuousLeftWall(
   ctx.lineTo(snap(back.x - hw), snap(baseB - h + hh + WALL_CAP));
   ctx.closePath();
   ctx.fill();
+}
+
+/** 背面壁と左壁の角（0,0）を隙間なく結合 */
+export function drawWallCornerJoin(
+  ctx: CanvasRenderingContext2D,
+  gridW: number,
+  gridH: number,
+  color: string,
+  layers: number,
+) {
+  const hw = ISO_TILE_W / 2;
+  const hh = ISO_TILE_H / 2;
+  const h = ISO_BLOCK_H * layers;
+
+  const corner = gridToScreen(0, 0, gridW, gridH, 0);
+  const base = corner.y + hh;
+
+  ctx.beginPath();
+  ctx.moveTo(snap(corner.x - hw), snap(base - h + hh));
+  ctx.lineTo(snap(corner.x), snap(base - h));
+  ctx.lineTo(snap(corner.x), snap(base + hh));
+  ctx.lineTo(snap(corner.x - hw), snap(base + hh));
+  ctx.closePath();
+  ctx.fillStyle = shade(color, -30);
+  ctx.fill();
+  ctx.strokeStyle = KAIRO_OUTLINE;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(snap(corner.x - hw), snap(base - h + hh));
+  ctx.lineTo(snap(corner.x), snap(base - h + hh * 2));
+  ctx.lineTo(snap(corner.x), snap(base + hh * 2));
+  ctx.lineTo(snap(corner.x - hw), snap(base + hh));
+  ctx.closePath();
+  ctx.fillStyle = shade(color, -38);
+  ctx.fill();
+
+  ctx.fillStyle = shade(color, 20);
+  ctx.beginPath();
+  ctx.moveTo(snap(corner.x - hw), snap(base - h + hh));
+  ctx.lineTo(snap(corner.x), snap(base - h + hh));
+  ctx.lineTo(snap(corner.x), snap(base - h + hh + WALL_CAP));
+  ctx.lineTo(snap(corner.x - hw), snap(base - h + hh + WALL_CAP));
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = KAIRO_OUTLINE;
+  ctx.lineWidth = 2;
+  ctx.stroke();
 }
 
 export function drawIsoPatternWall(
