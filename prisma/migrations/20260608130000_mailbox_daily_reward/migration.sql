@@ -60,9 +60,8 @@ ALTER TABLE "DailyRewardConfig" ADD CONSTRAINT "DailyRewardConfig_itemId_fkey" F
 -- AddForeignKey
 ALTER TABLE "DailyRewardLog" ADD CONSTRAINT "DailyRewardLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- 初期デイリー報酬（今後 DB で変更可能）
+-- 初期デイリー報酬（スタンプは seed で ItemMaster 作成後に投入）
 INSERT INTO "DailyRewardConfig" ("id", "label", "itemId", "itemQty", "coins", "gems", "exp", "isActive", "priority")
 VALUES
-  ('daily_coins', 'デイリーコイン', NULL, 1, 100, 0, 0, true, 1),
-  ('daily_stamp', 'デイリースタンプ', 'stamp_heart_01', 1, 0, 0, 0, true, 2)
+  ('daily_coins', 'デイリーコイン', NULL, 1, 100, 0, 0, true, 1)
 ON CONFLICT ("id") DO NOTHING;
